@@ -143,7 +143,8 @@ import {
   Settings, 
   GraduationCap,
   LogOut,
-  WifiHigh
+  WifiHigh,
+  NotepadTextIcon
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -155,7 +156,7 @@ const menuItems = [
   { icon: LayoutDashboard, title: 'Dashboard', path: '/dashboard' },
   { icon: FolderKanban, title: 'Projects', path: '/projects' },
   { icon: BrainCircuit, title: 'Quizzes', path: '/quizzes' },
-  { icon: Settings, title: 'Settings', path: '/settings' },
+  { icon: NotepadTextIcon, title: 'Tasks', path: '/task' },
   { icon: WifiHigh, title: 'Live', path: '/live' },
 ];
 

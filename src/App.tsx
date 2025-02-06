@@ -42,10 +42,12 @@ import LandingPage from './pages/LandingPage';
 import CoursePage from './pages/CoursePage';
 import LessonPage from './pages/LessonPage';
 import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
+
 import QuizCreation from './pages/QuizCreation';
 import QuizzesPage from './pages/QuizzesPage';
 import LiveClass from './pages/LiveClass';
+import TaskManagementSystem from './pages/TaskManagementSystem';
+import ProjectsDashboard from './pages/ProjectsDashboard';
 
 const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex">
@@ -97,10 +99,10 @@ const App: React.FC = () => {
           }
         />
         <Route
-          path="/profile"
+          path="/task"
           element={
             <PrivateLayout>
-              <Profile />
+              <TaskManagementSystem />
             </PrivateLayout>
           }
         />
@@ -128,7 +130,17 @@ const App: React.FC = () => {
             </PrivateLayout>
           }
         />
+          <Route
+          path="/projects"
+          element={
+            <PrivateLayout>
+              <ProjectsDashboard />
+            </PrivateLayout>
+          }
+        />
+
       </Routes>
+    
     </Router>
   );
 };
