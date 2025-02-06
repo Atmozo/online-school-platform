@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Socket } from 'socket.io-client';
+
 import socketIO from 'socket.io-client';
 import { Mic, MicOff, Video, VideoOff, MessageSquare, Users, X, Send } from 'lucide-react';
 import { Card } from '@/components/ui/card';

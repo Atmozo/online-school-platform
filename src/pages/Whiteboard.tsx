@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Socket } from 'socket.io-client';
+
 
 interface WhiteboardProps {
   socket: Socket;

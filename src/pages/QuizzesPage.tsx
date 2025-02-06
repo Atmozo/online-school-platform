@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Responsive
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Book, Timer } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
 
 interface Option {
   id: number;

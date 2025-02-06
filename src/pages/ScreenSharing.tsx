@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Monitor, StopCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Socket } from 'socket.io-client';
+
 
 interface ScreenSharingProps {
   socket: Socket;
