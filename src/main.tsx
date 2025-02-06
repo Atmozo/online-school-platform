@@ -1,27 +1,23 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import './global.css'; 
 import App from './App';
-import './index.css';
+// Register service worker if supported
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js")
+      .then(registration => {
+        console.log("Service Worker registered with scope:", registration.scope);
+      })
+      .catch(error => {
+        console.error("Service Worker registration failed:", error);
+      });
+  });
+}
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1E3A8A',
-    },
-    secondary: {
-      main: '#F59E0B',
-    },
-  },
-  typography: {
-    fontFamily: '"Poppins", "Open Sans", sans-serif',
-  },
-});
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <App />
-    </ThemeProvider>
+    <App />
   </React.StrictMode>
 );

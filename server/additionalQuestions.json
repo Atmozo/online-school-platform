@@ -1,0 +1,104 @@
+{
+  "questions": [
+    {
+      "question": "What is a closure in JavaScript?",
+      "options": [
+        "A function with its lexical scope",
+        "A new kind of variable",
+        "An object",
+        "None of the above"
+      ],
+      "correctAnswer": "A function with its lexical scope"
+    },
+    {
+      "question": "What is hoisting in JavaScript?",
+      "options": [
+        "Variable declarations are moved to the top",
+        "Function definitions are moved to the top",
+        "Both variable declarations and function definitions are moved to the top",
+        "None of the above"
+      ],
+      "correctAnswer": "Both variable declarations and function definitions are moved to the top"
+    },
+    {
+      "question": "What is the purpose of the 'strict mode' in JavaScript?",
+      "options": [
+        "It enables more errors to be thrown",
+        "It prevents certain actions and throws more exceptions",
+        "It helps in debugging",
+        "All of the above"
+      ],
+      "correctAnswer": "It prevents certain actions and throws more exceptions"
+    },
+    {
+      "question": "Which method is used to check if a variable is an array?",
+      "options": [
+        "Array.isArray()",
+        "typeof",
+        "instanceof",
+        "isArray()"
+      ],
+      "correctAnswer": "Array.isArray()"
+    },
+    {
+      "question": "What does the 'this' keyword refer to in a regular function (not an arrow function) in strict mode?",
+      "options": [
+        "The global object",
+        "undefined",
+        "The function itself",
+        "The object that called the function"
+      ],
+      "correctAnswer": "undefined"
+    },
+    {
+      "question": "What is the output of 'console.log(0.1 + 0.2 === 0.3)' in JavaScript?",
+      "options": [
+        "true",
+        "false",
+        "undefined",
+        "NaN"
+      ],
+      "correctAnswer": "false"
+    },
+    {
+      "question": "Which of the following is not a primitive data type in JavaScript?",
+      "options": [
+        "String",
+        "Number",
+        "Boolean",
+        "Object"
+      ],
+      "correctAnswer": "Object"
+    },
+    {
+      "question": "Which operator is used to concatenate strings in JavaScript?",
+      "options": [
+        "+",
+        "&&",
+        "||",
+        "concat()"
+      ],
+      "correctAnswer": "+"
+    },
+    {
+      "question": "What is the output of 'typeof null'?",
+      "options": [
+        "'null'",
+        "'object'",
+        "'undefined'",
+        "'number'"
+      ],
+      "correctAnswer": "'object'"
+    },
+    {
+      "question": "Which method converts a string to lowercase in JavaScript?",
+      "options": [
+        "toLowerCase()",
+        "toUpperCase()",
+        "toString()",
+        "convert()"
+      ],
+      "correctAnswer": "toLowerCase()"
+    }
+  ]
+}

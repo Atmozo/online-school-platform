@@ -1,35 +1,136 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+// import React from "react";
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import LandingPage from "./pages/LandingPage";
+// import CoursePage from "./pages/CoursePage";
+// import Dashboard from "./pages/Dashboard";
+// import Profile from "./pages/Profile";
+// import LessonPage from "./pages/LessonPage";
+// import Sidebar from "./components/layout/Sidebar";
+// import AuthForms from "./pages/AuthForms";
+// import 'plyr/dist/plyr.css';
+// import 'video.js/dist/video-js.css';
 
+// const App: React.FC = () => {
+//   return (
+    
+//     <Router>
+     
+//       <div className="flex">
+//         <Sidebar />
+//         <div className="flex-1 p-4"></div>
+//       <Routes>
+//         <Route path="/auth" element={<AuthForms />} />
+//         <Route path="/" element={<LandingPage />} />
+//         <Route path="/courses/:id" element={<CoursePage />} />
+//         <Route path="/courses/:id/lessons" element={<LessonPage />} />
+//         <Route path="/dashboard" element={<Dashboard />} />
+//         <Route path="/profile" element={<Profile />} />
+//       </Routes>
+//       </div>   
+//     </Router>
+    
+//   );
+// };
+
+// export default App;
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AuthForms from './pages/AuthForms';
+import Sidebar from './components/layout/Sidebar';
+import LandingPage from './pages/LandingPage';
+import CoursePage from './pages/CoursePage';
+import LessonPage from './pages/LessonPage';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import QuizCreation from './pages/QuizCreation';
+import QuizzesPage from './pages/QuizzesPage';
+import LiveClass from './pages/LiveClass';
+
+const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex">
+    {/* Sidebar is fixed and always visible */}
+    <Sidebar brandName="Learn" />
+    {/* Main content has left margin matching the sidebar's width (w-80) and some padding */}
+    <div className="flex-1 ml-80 p-14">
+      {children}
+    </div>
+  </div>
+);
+
+const App: React.FC = () => {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" 
+        element={
+        <PrivateLayout>
+        <LandingPage />
+        </PrivateLayout>
+        } />
+        <Route path="/auth" element={<AuthForms />} />
 
-export default App
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateLayout>
+              <Dashboard />
+            </PrivateLayout>
+          }
+        />
+        <Route
+          path="/courses/:id"
+          element={
+            <PrivateLayout>
+              <CoursePage />
+            </PrivateLayout>
+          }
+        />
+        <Route
+          path="/courses/:id/lessons"
+          element={
+            <PrivateLayout>
+              <LessonPage />
+            </PrivateLayout>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateLayout>
+              <Profile />
+            </PrivateLayout>
+          }
+        />
+        <Route
+          path="/quiz/create"
+          element={
+            <PrivateLayout>
+              <QuizCreation />
+            </PrivateLayout>
+          }
+        />
+        <Route
+          path="/live"
+          element={
+            <PrivateLayout>
+              <LiveClass roomId={''} userId={''} userName={''} role={'instructor'} />
+            </PrivateLayout>
+          }
+        />
+        <Route
+          path="/quizzes"
+          element={
+            <PrivateLayout>
+              <QuizzesPage />
+            </PrivateLayout>
+          }
+        />
+      </Routes>
+    </Router>
+  );
+};
+
+export default App;
