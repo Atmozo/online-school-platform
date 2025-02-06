@@ -1,0 +1,61 @@
+{
+  "title": "JavaScript Beginners Quiz ",
+  "created_by": 1,
+  "questions": [
+    {
+      "question": "What does the 'var' keyword do in JavaScript?",
+      "options": ["Declares a variable", "Declares a constant", "Declares a function", "None of the above"],
+      "correctAnswer": "Declares a variable"
+    },
+    {
+      "question": "Which keyword is used to declare a block-scoped variable?",
+      "options": ["var", "let", "const", "block"],
+      "correctAnswer": "let"
+    },
+    {
+      "question": "What is the correct way to convert a string to an integer in JavaScript?",
+      "options": ["parseInt()", "parseFloat()", "toInt()", "Number()"],
+      "correctAnswer": "parseInt()"
+    },
+    {
+      "question": "Which operator is used for strict equality in JavaScript?",
+      "options": ["==", "===", "=", "!="],
+      "correctAnswer": "==="
+    },
+    {
+      "question": "What does JSON.stringify() do?",
+      "options": ["Converts an object to a JSON string", "Parses a JSON string into an object", "Converts a number to a string", "None of the above"],
+      "correctAnswer": "Converts an object to a JSON string"
+    },
+    {
+      "question": "What will '2' + 2 evaluate to in JavaScript?",
+      "options": ["4", "22", "NaN", "Error"],
+      "correctAnswer": "22"
+    },
+    {
+      "question": "Which method removes the last element from an array?",
+      "options": ["shift()", "pop()", "slice()", "delete()"],
+      "correctAnswer": "pop()"
+    },
+    {
+      "question": "Which built-in method returns the length of a string?",
+      "options": ["size()", "length()", "len()", "count()"],
+      "correctAnswer": "length()"
+    },
+    {
+      "question": "What is the purpose of the 'this' keyword in JavaScript?",
+      "options": [
+        "It refers to the current object",
+        "It creates a new object",
+        "It refers to the global object",
+        "None of the above"
+      ],
+      "correctAnswer": "It refers to the current object"
+    },
+    {
+      "question": "Which method is used to add an element to the end of an array?",
+      "options": ["push()", "pop()", "shift()", "unshift()"],
+      "correctAnswer": "push()"
+    }
+  ]
+}

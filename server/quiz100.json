@@ -1,0 +1,106 @@
+{
+  "title": "Advanced JavaScript Quiz",
+  "created_by": 1,
+  "questions": [
+    {
+      "question": "What does 'let' do in JavaScript?",
+      "options": ["Declares a variable", "Declares a function", "Creates a constant", "None of the above"],
+      "correctAnswer": "Declares a variable"
+    },
+    {
+      "question": "What keyword is used to define a constant variable in JavaScript?",
+      "options": ["var", "let", "const", "define"],
+      "correctAnswer": "const"
+    },
+    {
+      "question": "Which method is used to remove the last element from an array?",
+      "options": ["shift()", "pop()", "splice()", "removeLast()"],
+      "correctAnswer": "pop()"
+    },
+    {
+      "question": "Which company developed JavaScript?",
+      "options": ["Netscape", "Microsoft", "Google", "Apple"],
+      "correctAnswer": "Netscape"
+    },
+    {
+      "question": "Which of the following is a JavaScript data type?",
+      "options": ["Number", "Float", "Character", "Word"],
+      "correctAnswer": "Number"
+    },
+    {
+      "question": "What does the 'typeof' operator return for an array?",
+      "options": ["'array'", "'object'", "'list'", "'undefined'"],
+      "correctAnswer": "'object'"
+    },
+    {
+      "question": "Which symbol is used for comments in JavaScript?",
+      "options": ["//", "/* */", "#", "--"],
+      "correctAnswer": "//"
+    },
+    {
+      "question": "What is the result of '2' + 2 in JavaScript?",
+      "options": ["4", "22", "NaN", "Error"],
+      "correctAnswer": "22"
+    },
+    {
+      "question": "Which function is used to parse a string to an integer?",
+      "options": ["parseInt()", "parseFloat()", "toInteger()", "Number()"],
+      "correctAnswer": "parseInt()"
+    },
+    {
+      "question": "Which statement is used to stop a loop?",
+      "options": ["break", "stop", "exit", "return"],
+      "correctAnswer": "break"
+    },
+    {
+      "question": "What is the correct way to declare an arrow function?",
+      "options": ["() => {}", "function => {}", "function() => {}", "function() {}"],
+      "correctAnswer": "() => {}"
+    },
+    {
+      "question": "Which operator is used for strict comparison?",
+      "options": ["==", "!=", "===", "!=="],
+      "correctAnswer": "==="
+    },
+    {
+      "question": "What is the purpose of the 'this' keyword?",
+      "options": ["Refers to the global object", "Refers to the current object", "Creates a new object", "None of the above"],
+      "correctAnswer": "Refers to the current object"
+    },
+    {
+      "question": "Which method adds one or more elements to the beginning of an array?",
+      "options": ["push()", "unshift()", "shift()", "concat()"],
+      "correctAnswer": "unshift()"
+    },
+    {
+      "question": "What is the default value of an uninitialized variable in JavaScript?",
+      "options": ["null", "0", "undefined", "NaN"],
+      "correctAnswer": "undefined"
+    },
+    {
+      "question": "Which loop is guaranteed to execute at least once?",
+      "options": ["for", "while", "do...while", "foreach"],
+      "correctAnswer": "do...while"
+    },
+    {
+      "question": "Which method is used to convert JSON to a JavaScript object?",
+      "options": ["JSON.parse()", "JSON.stringify()", "JSON.toObject()", "JSON.convert()"],
+      "correctAnswer": "JSON.parse()"
+    },
+    {
+      "question": "Which method converts a JavaScript object to a JSON string?",
+      "options": ["JSON.parse()", "JSON.stringify()", "JSON.toString()", "JSON.convert()"],
+      "correctAnswer": "JSON.stringify()"
+    },
+    {
+      "question": "What will `console.log(typeof NaN)` return?",
+      "options": ["'NaN'", "'undefined'", "'number'", "'string'"],
+      "correctAnswer": "'number'"
+    },
+    {
+      "question": "Which built-in method sorts the elements of an array?",
+      "options": ["order()", "sort()", "arrange()", "sorted()"],
+      "correctAnswer": "sort()"
+    }
+  ]
+}

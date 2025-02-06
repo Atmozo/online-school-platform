@@ -1,50 +1,75 @@
-# React + TypeScript + Vite
+# Learn - Online School Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+EduLearn is a full-featured online learning platform that offers interactive courses, live classes, quizzes, and offline capabilities—all wrapped in a Progressive Web App (PWA). The platform provides a modern learning experience where students can enroll in courses, watch video lectures with advanced controls, take quizzes with auto-grading, and participate in live classes with real-time chat. Instructors can manage courses, create quizzes, and host live sessions.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Table of Contents
 
-## Expanding the ESLint configuration
+- [Overview](#overview)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Installation & Setup](#installation--setup)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+- [Running the Application](#running-the-application)
+- [Testing the Backend with cURL](#testing-the-backend-with-curl)
+- [PWA & Offline Functionality](#pwa--offline-functionality)
+- 
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+---
 
-- Configure the top-level `parserOptions` property like this:
+## Overview
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+EduLearn is a full-stack online school platform that provides:
+- **Students:** A way to enroll in courses, view interactive lessons (including advanced video playback with quality selection and progress tracking), take quizzes, and join live classes with real-time chat.
+- **Instructors:** Tools to create courses, add lessons and resources, build quizzes, and host live video sessions.
+- **PWA & Offline Support:** Offline access through service workers and IndexedDB with automatic sync when online.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+---
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+## Features
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+- **User Authentication:** Secure sign-up and login using JWT.
+- **Course Management:** Instructors can create courses, lessons, and upload various types of resources.
+- **Interactive Quizzes:** Quiz creation and taking interfaces with timers, auto-grading, and detailed result analytics.
+- **Live Classes:** Real-time video streaming (WebRTC) and chat (Socket.IO) for live learning sessions.
+- **PWA & Offline Capabilities:** Service Worker caching, Web App Manifest, and IndexedDB for offline data storage with automatic synchronization.
+- **Resource Management & Caching:** Efficient caching of course materials using node-cache and service workers to reduce network usage.
+- **Advanced Video Playback:** Integration of Plyr (via plyr-react) for video controls, quality selection, and progress tracking.
+- **Animated UI:** Smooth transitions and polished design using Framer Motion and shadcn-ui components.
+
+---
+
+## Technologies Used
+
+- **Frontend:**
+  - React with TypeScript
+  - Vite as the build tool
+  - Tailwind CSS for styling
+  - shadcn-ui components for a modern UI
+  - Framer Motion for animations
+  - Plyr-react for video playback
+- **Backend:**
+  - Node.js with Express
+  - MySQL (using mysql2)
+  - Socket.IO for real-time communication (live streaming and chat)
+  - WebRTC for live video conferencing
+  - node-cache for server-side caching
+- **PWA & Offline:**
+  - Service Worker and Web App Manifest
+  - IndexedDB (using idb) for offline data storage
+- **Other Tools:**
+  - cURL for API testing
+  - npm & nvm for package and Node version management
+
+---
+
+## Installation & Setup
+
+### Backend Setup
+
+1. **Navigate to the server directory:**
+
+   ```bash
+   cd server
