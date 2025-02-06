@@ -73,3 +73,107 @@ EduLearn is a full-stack online school platform that provides:
 
    ```bash
    cd server
+   npm install
+   npm run dev
+
+   frontent
+   cd ..
+   npm install
+   npm run dev
+Testing the Backend with cURL
+Create a Test User
+  curl -X POST http://localhost:5000/api/users \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "Test-User",
+           "email": "test1@example.com",
+           "password": "password123"
+         }'
+         Create a Quiz with 10 Questions
+
+  Save the following JSON as quiz10.json:
+
+  {
+  "title": "JavaScript for Beginners Quiz - Batch 2",
+  "created_by": 1,
+  "questions": [
+    {
+      "question": "What does the 'var' keyword do in JavaScript?",
+      "options": ["Declares a variable", "Declares a function", "Creates a constant", "None of the above"],
+      "correctAnswer": "Declares a variable"
+    },
+    {
+      "question": "Which keyword is used to declare a block-scoped variable?",
+      "options": ["var", "let", "const", "block"],
+      "correctAnswer": "let"
+    },
+    {
+      "question": "What is the correct way to convert a string to an integer?",
+      "options": ["parseInt()", "Number()", "toInteger()", "None of the above"],
+      "correctAnswer": "parseInt()"
+    },
+    {
+      "question": "Which operator is used for strict equality?",
+      "options": ["==", "===", "=", "!="],
+      "correctAnswer": "==="
+    },
+    {
+      "question": "What does JSON.stringify() do?",
+      "options": ["Converts an object to a JSON string", "Parses a JSON string", "Converts a number to a string", "None of the above"],
+      "correctAnswer": "Converts an object to a JSON string"
+    },
+    {
+      "question": "What will '2' + 2 evaluate to?",
+      "options": ["4", "22", "NaN", "Error"],
+      "correctAnswer": "22"
+    },
+    {
+      "question": "Which method removes the last element from an array?",
+      "options": ["shift()", "pop()", "slice()", "delete()"],
+      "correctAnswer": "pop()"
+    },
+    {
+      "question": "What is the output of typeof []?",
+      "options": ["array", "object", "list", "undefined"],
+      "correctAnswer": "object"
+    },
+    {
+      "question": "What is a closure in JavaScript?",
+      "options": ["A function with its lexical scope", "A new variable", "An object", "None of the above"],
+      "correctAnswer": "A function with its lexical scope"
+    },
+    {
+      "question": "Which method adds an element to the end of an array?",
+      "options": ["push()", "pop()", "shift()", "unshift()"],
+      "correctAnswer": "push()"
+    }
+  ]
+}
+curl -X POST http://localhost:5000/api/quizzes \
+     -H "Content-Type: application/json" \
+     -d @quiz10.json
+     Course Endpoints
+
+
+     curl -X GET http://localhost:5000/api/courses | jq .
+     curl -X GET http://localhost:5000/api/courses/1/details | jq .
+     
+  Get All Lessons for a Course
+
+      curl -X GET http://localhost:5000/api/courses/1/lessons | jq .
+
+ Get Resources for a Lesson
+
+      curl -X GET http://localhost:5000/api/lessons/1/resources | jq .
+Quiz Endpoints
+
+      curl -X GET http://localhost:5000/api/quizzes/1 | jq .
+
+Enrollment & Progress Endpoints
+
+      curl -X GET http://localhost:5000/enrollments/1 | jq .
+
+
+
+
+   
