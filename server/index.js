@@ -298,7 +298,8 @@ app.use((err, req, res, next) => {
 });
 
 //Start server
-const DB_NAME = process.env.DB_HOST ||mysql://root:EjnjWLsQvEpUrpBvldXDQnLjnzVnusyp@viaduct.proxy.rlwy.net:50700/railway;
-server.listen(DB_NAME, () => {
-  console.log(`Server running on port ${DB_NAME}`);
+
+const PORT = process.env.PORT ||5000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
