@@ -297,8 +297,8 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!');
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
+//Start server
+const PORT = process.env.PORT ||3306;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
