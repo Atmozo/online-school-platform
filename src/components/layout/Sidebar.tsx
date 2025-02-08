@@ -133,17 +133,19 @@
 // };
 
 // export default Sidebar;
-import React from 'react';
-import { motion } from 'framer-motion';
-import { 
-  BookOpen, 
-  LayoutDashboard, 
-  FolderKanban, 
-  BrainCircuit, 
-  Settings, 
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  BookOpen,
+  LayoutDashboard,
+  FolderKanban,
+  BrainCircuit,
   GraduationCap,
   LogOut,
-  WifiHigh
+  WifiHigh,
+  NotepadTextIcon,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -155,21 +157,30 @@ const menuItems = [
   { icon: LayoutDashboard, title: 'Dashboard', path: '/dashboard' },
   { icon: FolderKanban, title: 'Projects', path: '/projects' },
   { icon: BrainCircuit, title: 'Quizzes', path: '/quizzes' },
-  { icon: Settings, title: 'Settings', path: '/settings' },
+  { icon: NotepadTextIcon, title: 'Tasks', path: '/task' },
   { icon: WifiHigh, title: 'Live', path: '/live' },
 ];
 
 const sidebarVariants = {
   open: {
     x: 0,
-    transition: { 
-      type: 'spring', 
-      stiffness: 200, 
+    transition: {
+      type: 'spring',
+      stiffness: 200,
       damping: 24,
       when: 'beforeChildren',
       staggerChildren: 0.1
     },
   },
+  closed: {
+    x: '-100%',
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+      when: 'afterChildren',
+    },
+  }
 };
 
 const menuItemVariants = {
@@ -178,48 +189,101 @@ const menuItemVariants = {
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ brandName = 'EduLearn' }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const SidebarContent = () => (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={sidebarVariants}
+      className="flex flex-col h-full"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center">
+          <GraduationCap className="w-10 h-10" />
+          <h2 className="text-2xl font-bold ml-3">{brandName}</h2>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1">
+        <motion.ul className="space-y-4">
+          {menuItems.map((item) => (
+            <motion.li key={item.path} variants={menuItemVariants}>
+              <a
+                href={item.path}
+                className="flex items-center p-4 rounded-lg hover:bg-blue-700 transition-all duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <item.icon className="w-6 h-6 mr-4 transition-transform hover:scale-110" />
+                <span className="text-lg font-medium">{item.title}</span>
+              </a>
+            </motion.li>
+          ))}
+        </motion.ul>
+      </nav>
+
+      {/* Logout Section */}
+      <div className="mt-auto pt-8 border-t border-blue-500">
+        <button className="flex items-center w-full p-4 rounded-lg hover:bg-blue-700 transition-colors text-red-300 hover:text-white">
+          <LogOut className="w-6 h-6 mr-4 transition-transform hover:scale-110" />
+          <span className="text-lg font-medium">Logout</span>
+        </button>
+      </div>
+    </motion.div>
+  );
+
   return (
-    <div className="fixed top-0 left-0 h-screen w-80 bg-blue-600 text-white p-8 shadow-2xl z-50">
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={sidebarVariants}
-        className="flex flex-col h-full"
+    <>
+      {/* Mobile Burger Menu Button */}
+      <button
+        onClick={toggleMobileMenu}
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-600 text-white md:hidden hover:bg-blue-700 transition-colors"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-10">
-          <div className="flex items-center">
-            <GraduationCap className="w-10 h-10" />
-            <h2 className="text-2xl font-bold ml-3">{brandName}</h2>
-          </div>
-        </div>
-        
-        {/* Navigation */}
-        <nav className="flex-1">
-          <motion.ul className="space-y-4">
-            {menuItems.map((item) => (
-              <motion.li key={item.path} variants={menuItemVariants}>
-                <a
-                  href={item.path}
-                  className="flex items-center p-4 rounded-lg hover:bg-blue-700 transition-all duration-200"
-                >
-                  <item.icon className="w-6 h-6 mr-4 transition-transform hover:scale-110" />
-                  <span className="text-lg font-medium">{item.title}</span>
-                </a>
-              </motion.li>
-            ))}
-          </motion.ul>
-        </nav>
-        
-        {/* Logout Section */}
-        <div className="mt-auto pt-8 border-t border-blue-500">
-          <button className="flex items-center w-full p-4 rounded-lg hover:bg-blue-700 transition-colors text-red-300 hover:text-white">
-            <LogOut className="w-6 h-6 mr-4 transition-transform hover:scale-110" />
-            <span className="text-lg font-medium">Logout</span>
-          </button>
-        </div>
-      </motion.div>
-    </div>
+        {isMobileMenuOpen ? (
+          <X className="w-6 h-6" />
+        ) : (
+          <Menu className="w-6 h-6" />
+        )}
+      </button>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block fixed top-0 left-0 h-screen w-80 bg-blue-600 text-white p-8 shadow-2xl z-40">
+        <SidebarContent />
+      </div>
+
+      {/* Mobile Sidebar */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/50 z-30 md:hidden"
+            />
+            
+            {/* Mobile Menu */}
+            <motion.div
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={sidebarVariants}
+              className="fixed top-0 left-0 h-screen w-[280px] bg-blue-600 text-white p-8 shadow-2xl z-40 md:hidden"
+            >
+              <SidebarContent />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

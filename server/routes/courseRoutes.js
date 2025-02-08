@@ -18,6 +18,7 @@ router.post('/add', async (req, res) => {
     res.status(500).json({ error: 'Error creating course' });
   }
 });
+
 // Add a new lesson
 router.post('/:courseId/lessons/add', async (req, res) => {
   const { courseId } = req.params;

@@ -8,9 +8,9 @@ interface BarChartProps {
 const BarChartComponent: React.FC<BarChartProps> = ({ tasks }) => {
   const completedTasks = tasks.filter((task) => task.status === 'Completed');
   const data = completedTasks.map((task, index) => ({
-    name: `Task ${index + 1}`,
-    Completed: 1,
-  }));
+      name: `Task ${index + 1}`,
+      Completed: 1,
+    }));
 
   return (
     <div className="p-6 bg-white rounded-md shadow-md">
