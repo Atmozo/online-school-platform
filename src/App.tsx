@@ -34,148 +34,26 @@
 // };
 
 // export default App;
-// import React from 'react';
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import AuthForms from './pages/AuthForms';
-// import Sidebar from './components/layout/Sidebar';
-// import LandingPage from './pages/LandingPage';
-// import CoursePage from './pages/CoursePage';
-// import LessonPage from './pages/LessonPage';
-// import Dashboard from './pages/Dashboard';
-
-// import QuizCreation from './pages/QuizCreation';
-// import QuizzesPage from './pages/QuizzesPage';
-// import LiveClass from './pages/LiveClass';
-// import TaskManagementSystem from './pages/TaskManagementSystem';
-// import ProjectsDashboard from './pages/ProjectsDashboard';
-
-// const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
-//   <div className="flex">
-//     {/* Sidebar is fixed and always visible */}
-//     <Sidebar brandName="Learn" />
-//     {/* Main content has left margin matching the sidebar's width (w-80) and some padding */}
-//     <div className="flex-1 ml-80">
-//       {children}
-//     </div>
-//   </div>
-// );
-
-// const App: React.FC = () => {
-//   return (
-//     <Router>
-//       <Routes>
-//         {/* Public Routes */}
-//         <Route path="/" 
-//         element={
-//         <PrivateLayout>
-//         <LandingPage />
-//         </PrivateLayout>
-//         } />
-//         <Route path="/auth" element={<AuthForms />} />
-
-//         {/* Protected Routes */}
-//         <Route
-//           path="/dashboard"
-//           element={
-//             <PrivateLayout>
-//               <Dashboard />
-//             </PrivateLayout>
-//           }
-//         />
-//         <Route
-//           path="/courses/:id"
-//           element={
-//             <PrivateLayout>
-//               <CoursePage />
-//             </PrivateLayout>
-//           }
-//         />
-//         <Route
-//           path="/courses/:id/lessons"
-//           element={
-//             <PrivateLayout>
-//               <LessonPage />
-//             </PrivateLayout>
-//           }
-//         />
-//         <Route
-//           path="/task"
-//           element={
-//             <PrivateLayout>
-//               <TaskManagementSystem />
-//             </PrivateLayout>
-//           }
-//         />
-//         <Route
-//           path="/quiz/create"
-//           element={
-//             <PrivateLayout>
-//               <QuizCreation />
-//             </PrivateLayout>
-//           }
-//         />
-//         <Route
-//           path="/live"
-//           element={
-//             <PrivateLayout>
-//               <LiveClass roomId={''} userId={''} userName={''} role={'instructor'} />
-//             </PrivateLayout>
-//           }
-//         />
-//         <Route
-//           path="/quizzes"
-//           element={
-//             <PrivateLayout>
-//               <QuizzesPage />
-//             </PrivateLayout>
-//           }
-//         />
-//           <Route
-//           path="/projects"
-//           element={
-//             <PrivateLayout>
-//               <ProjectsDashboard />
-//             </PrivateLayout>
-//           }
-//         />
-
-//       </Routes>
-    
-//     </Router>
-//   );
-// };
-
-// export default App;
 import React from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AuthForms from './pages/AuthForms';
 import Sidebar from './components/layout/Sidebar';
 import LandingPage from './pages/LandingPage';
 import CoursePage from './pages/CoursePage';
 import LessonPage from './pages/LessonPage';
 import Dashboard from './pages/Dashboard';
+
 import QuizCreation from './pages/QuizCreation';
 import QuizzesPage from './pages/QuizzesPage';
 import LiveClass from './pages/LiveClass';
 import TaskManagementSystem from './pages/TaskManagementSystem';
 import ProjectsDashboard from './pages/ProjectsDashboard';
 
-// Simulating authentication (replace with real auth logic)
-const isAuthenticated = () => {
-  return localStorage.getItem("userToken") !== null; // Example: check token in localStorage
-};
-
-// Protected Route Wrapper
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  return isAuthenticated() ? children : <Navigate to="/dashboard" replace />;
-};
-
-// Layout with Sidebar for private pages
 const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex">
+    {/* Sidebar is fixed and always visible */}
     <Sidebar brandName="Learn" />
+    {/* Main content has left margin matching the sidebar's width (w-80) and some padding */}
     <div className="flex-1 ml-80">
       {children}
     </div>
@@ -186,100 +64,222 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* Redirect users to /auth first if not logged in */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
         {/* Public Routes */}
+        <Route path="/" 
+        element={
+        <PrivateLayout>
+        <LandingPage />
+        </PrivateLayout>
+        } />
         <Route path="/auth" element={<AuthForms />} />
-        <Route path="/dashboard" element={<LandingPage />} />
 
-        {/* Protected Routes (Require Authentication) */}
+        {/* Protected Routes */}
         <Route
           path="/dashboard"
           element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <Dashboard />
-              </PrivateLayout>
-            </PrivateRoute>
+            <PrivateLayout>
+              <Dashboard />
+            </PrivateLayout>
           }
         />
         <Route
           path="/courses/:id"
           element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <CoursePage />
-              </PrivateLayout>
-            </PrivateRoute>
+            <PrivateLayout>
+              <CoursePage />
+            </PrivateLayout>
           }
         />
         <Route
           path="/courses/:id/lessons"
           element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <LessonPage />
-              </PrivateLayout>
-            </PrivateRoute>
+            <PrivateLayout>
+              <LessonPage />
+            </PrivateLayout>
           }
         />
         <Route
           path="/task"
           element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <TaskManagementSystem />
-              </PrivateLayout>
-            </PrivateRoute>
+            <PrivateLayout>
+              <TaskManagementSystem />
+            </PrivateLayout>
           }
         />
         <Route
           path="/quiz/create"
           element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <QuizCreation />
-              </PrivateLayout>
-            </PrivateRoute>
+            <PrivateLayout>
+              <QuizCreation />
+            </PrivateLayout>
           }
         />
         <Route
           path="/live"
           element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <LiveClass roomId={''} userId={''} userName={''} role={'instructor'} />
-              </PrivateLayout>
-            </PrivateRoute>
+            <PrivateLayout>
+              <LiveClass roomId={''} userId={''} userName={''} role={'instructor'} />
+            </PrivateLayout>
           }
         />
         <Route
           path="/quizzes"
           element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <QuizzesPage />
-              </PrivateLayout>
-            </PrivateRoute>
+            <PrivateLayout>
+              <QuizzesPage />
+            </PrivateLayout>
           }
         />
-        <Route
+          <Route
           path="/projects"
           element={
-            <PrivateRoute>
-              <PrivateLayout>
-                <ProjectsDashboard />
-              </PrivateLayout>
-            </PrivateRoute>
+            <PrivateLayout>
+              <ProjectsDashboard />
+            </PrivateLayout>
           }
         />
 
-        {/* 404 Page for unknown routes */}
-        <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
+    
     </Router>
   );
 };
 
 export default App;
+// import React from 'react';
+// import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+
+// import AuthForms from './pages/AuthForms';
+// import Sidebar from './components/layout/Sidebar';
+// import LandingPage from './pages/LandingPage';
+// import CoursePage from './pages/CoursePage';
+// import LessonPage from './pages/LessonPage';
+// import Dashboard from './pages/Dashboard';
+// import QuizCreation from './pages/QuizCreation';
+// import QuizzesPage from './pages/QuizzesPage';
+// import LiveClass from './pages/LiveClass';
+// import TaskManagementSystem from './pages/TaskManagementSystem';
+// import ProjectsDashboard from './pages/ProjectsDashboard';
+
+// // Simulating authentication (replace with real auth logic)
+// const isAuthenticated = () => {
+//   return localStorage.getItem("userToken") !== null; // Example: check token in localStorage
+// };
+
+// // Protected Route Wrapper
+// const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+//   return isAuthenticated() ? children : <Navigate to="/auth" replace />;
+// };
+
+// // Layout with Sidebar for private pages
+// const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
+//   <div className="flex">
+//     <Sidebar brandName="Learn" />
+//     <div className="flex-1 ml-80">
+//       {children}
+//     </div>
+//   </div>
+// );
+
+// const App: React.FC = () => {
+//   return (
+//     <Router>
+//       <Routes>
+//         {/* Redirect users to /auth first if not logged in */}
+//         <Route path="/" element={<Navigate to="/landing" replace />} />
+
+//         {/* Public Routes */}
+//         <Route path="/auth" element={<AuthForms />} />
+//         <Route path="/landing" element={<LandingPage />} />
+
+//         {/* Protected Routes (Require Authentication) */}
+//         <Route
+//           path="/dashboard"
+//           element={
+//             <PrivateRoute>
+//               <PrivateLayout>
+//                 <Dashboard />
+//               </PrivateLayout>
+//             </PrivateRoute>
+//           }
+//         />
+//         <Route
+//           path="/courses/:id"
+//           element={
+//             <PrivateRoute>
+//               <PrivateLayout>
+//                 <CoursePage />
+//               </PrivateLayout>
+//             </PrivateRoute>
+//           }
+//         />
+//         <Route
+//           path="/courses/:id/lessons"
+//           element={
+//             <PrivateRoute>
+//               <PrivateLayout>
+//                 <LessonPage />
+//               </PrivateLayout>
+//             </PrivateRoute>
+//           }
+//         />
+//         <Route
+//           path="/task"
+//           element={
+//             <PrivateRoute>
+//               <PrivateLayout>
+//                 <TaskManagementSystem />
+//               </PrivateLayout>
+//             </PrivateRoute>
+//           }
+//         />
+//         <Route
+//           path="/quiz/create"
+//           element={
+//             <PrivateRoute>
+//               <PrivateLayout>
+//                 <QuizCreation />
+//               </PrivateLayout>
+//             </PrivateRoute>
+//           }
+//         />
+//         <Route
+//           path="/live"
+//           element={
+//             <PrivateRoute>
+//               <PrivateLayout>
+//                 <LiveClass roomId={''} userId={''} userName={''} role={'instructor'} />
+//               </PrivateLayout>
+//             </PrivateRoute>
+//           }
+//         />
+//         <Route
+//           path="/quizzes"
+//           element={
+//             <PrivateRoute>
+//               <PrivateLayout>
+//                 <QuizzesPage />
+//               </PrivateLayout>
+//             </PrivateRoute>
+//           }
+//         />
+//         <Route
+//           path="/projects"
+//           element={
+//             <PrivateRoute>
+//               <PrivateLayout>
+//                 <ProjectsDashboard />
+//               </PrivateLayout>
+//             </PrivateRoute>
+//           }
+//         />
+
+//         {/* 404 Page for unknown routes */}
+//         <Route path="*" element={<Navigate to="/auth" replace />} />
+//       </Routes>
+//     </Router>
+//   );
+// };
+
+// export default App;
