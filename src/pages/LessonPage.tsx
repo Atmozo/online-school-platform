@@ -134,7 +134,7 @@ const LessonPage: React.FC = () => {
     const fetchLessons = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/courses/${id}/lessons`);
+        const response = await axios.get(`https://online-school-platform.onrender.com/api/courses/${id}/lessons`);
         setLessons(response.data);
         setError(null);
       } catch (error) {
