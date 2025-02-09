@@ -34,7 +34,7 @@ const QuizCreation: React.FC = () => {
     const quizData = { title: quizTitle, created_by: 1, questions }; // Replace created_by with dynamic user ID if needed
 
     try {
-      const response = await fetch("http://localhost:5000/api/quizzes", {
+      const response = await fetch("https://online-school-platform.onrender.com/api/quizzes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(quizData)
