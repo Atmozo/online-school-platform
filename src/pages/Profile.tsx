@@ -183,7 +183,7 @@ const Profile = () => {
   const handleProfileUpdate = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put("http://localhost:5000/profile", user, {
+      await axios.put("https://online-school-platform.onrender.com/profile", user, {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert("Profile updated!");
