@@ -295,12 +295,12 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
             />
           </div>
 
-{/*           {/* Title */}
+          {/* Title */}
           {title && (
             <div className="flex-grow">
               <h3 className="text-white text-lg font-medium truncate">{title}</h3>
             </div>
-          )} */}
+          )}
 
           {/* Settings */}
           <div className="relative">
