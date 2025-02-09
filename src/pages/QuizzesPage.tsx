@@ -49,7 +49,7 @@ const QuizzesPage = () => {
   const [showResults, setShowResults] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/quizzes")
+    fetch("https://online-school-platform.onrender.com/api/quizzes")
       .then((res) => res.json())
       .then((data: Quiz[]) => {
         const filteredQuizzes = data.filter((quiz) => quiz.id === 1 || quiz.id === 2 || quiz.id === 3);
