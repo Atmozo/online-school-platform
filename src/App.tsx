@@ -187,7 +187,7 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         {/* Redirect users to /auth first if not logged in */}
-        <Route path="/" element={<Navigate to="/auth" replace />} />
+        <Route path="/" element={<Navigate to="/landing" replace />} />
 
         {/* Public Routes */}
         <Route path="/auth" element={<AuthForms />} />
