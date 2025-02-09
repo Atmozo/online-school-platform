@@ -49,16 +49,31 @@ import LiveClass from './pages/LiveClass';
 import TaskManagementSystem from './pages/TaskManagementSystem';
 import ProjectsDashboard from './pages/ProjectsDashboard';
 
-const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex">
-    {/* Sidebar is fixed and always visible */}
-    <Sidebar brandName="Learn" />
-    {/* Main content has left margin matching the sidebar's width (w-80) and some padding */}
-    <div className="flex-grow ">
-      {children}
+// const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
+//   <div className="flex">
+//     {/* Sidebar is fixed and always visible */}
+//     <Sidebar brandName="Learn" />
+//     {/* Main content has left margin matching the sidebar's width (w-80) and some padding */}
+//     <div className="flex-grow ">
+//       {children}
+//     </div>
+//   </div>
+// );
+const PrivateLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="flex flex-col md:flex-row min-h-screen">
+      {/* Sidebar collapses on mobile, shows on larger screens */}
+      <div className="w-full md:w-80 flex-shrink-0">
+        <Sidebar brandName="Learn" />
+      </div>
+      
+      {/* Main content takes full width on mobile, adjusts on desktop */}
+      <main className="flex-grow p-4 md:p-6">
+        {children}
+      </main>
     </div>
-  </div>
-);
+  );
+};
 
 const App: React.FC = () => {
   return (
