@@ -191,7 +191,7 @@ const App: React.FC = () => {
 
         {/* Public Routes */}
         <Route path="/auth" element={<AuthForms />} />
-        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/dashboard" element={<LandingPage />} />
 
         {/* Protected Routes (Require Authentication) */}
         <Route
