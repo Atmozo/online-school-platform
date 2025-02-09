@@ -23,7 +23,7 @@ const LandingPage: React.FC = () => {
       {/* Header Section */}
       <header className=" bg-blue-600 text-white py-4">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold">Welcome to Our Learning Platform</h1>
+          <h1 className="text-4xl font-bold">DEMO MVP LEARNING SITE</h1>
           <p className="mt-2 text-lg">
             Discover courses and grow your skills!
           </p>
