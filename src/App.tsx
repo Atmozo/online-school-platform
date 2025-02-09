@@ -169,7 +169,7 @@ const isAuthenticated = () => {
 
 // Protected Route Wrapper
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  return isAuthenticated() ? children : <Navigate to="/auth" replace />;
+  return isAuthenticated() ? children : <Navigate to="/dashboard" replace />;
 };
 
 // Layout with Sidebar for private pages
