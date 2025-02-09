@@ -64,7 +64,7 @@ const LiveClass = ({
 
   // Initialize socket connection and media stream
   useEffect(() => {
-    const newSocket = socketIO('http://localhost:5000');
+    const newSocket = socketIO('https://online-school-platform.onrender.com');
     setSocket(newSocket);
 
     // Get user media
