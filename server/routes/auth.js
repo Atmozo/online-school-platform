@@ -48,7 +48,7 @@ const jwt = require("jsonwebtoken");
 const db = require("../db/connection");
 
 const router = express.Router();
-const SECRET_KEY = "your_jwt_secret"; // Change this in production
+const SECRET_KEY = "qwerty123"; // Change this in production
 
 // Register User
 // Login Route
