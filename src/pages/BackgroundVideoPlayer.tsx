@@ -134,7 +134,7 @@
 
 // VideoPlayer.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings,  } from 'lucide-react';
 
 interface VideoPlayerProps {
   url: string;
@@ -153,35 +153,89 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
 }) => {
   const [isYouTube, setIsYouTube] = useState(false);
   const [videoId, setVideoId] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(autoplay);
+  const [isMuted, setIsMuted] = useState(autoplay);
+  const [volume, setVolume] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Function to extract YouTube video ID
     const extractYouTubeId = (url: string) => {
       const patterns = [
         /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\?\/]+)/,
         /youtube\.com\/watch\?.*v=([^&]+)/
       ];
-
       for (const pattern of patterns) {
         const match = url.match(pattern);
         if (match) return match[1];
       }
       return null;
     };
-
+    
     const id = extractYouTubeId(url);
     setVideoId(id);
     setIsYouTube(!!id);
   }, [url]);
 
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume;
+      setVolume(newVolume);
+      setIsMuted(newVolume === 0);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement && containerRef.current) {
+      containerRef.current.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const toggleSettings = () => {
+    setShowSettings(!showSettings);
+  };
+
   if (isYouTube && videoId) {
+    const youtubeParams = new URLSearchParams({
+      autoplay: autoplay ? '1' : '0',
+      mute: isMuted ? '1' : '0',
+      controls: '1',
+      modestbranding: '1',
+      rel: '0'
+    });
+
     return (
-      <div className={`relative w-full ${className}`}>
-        <div className="relative pt-[56.25%]"> {/* 16:9 Aspect Ratio */}
+      <div className={`relative w-full ${className}`} ref={containerRef}>
+        <div className="relative pt-[56.25%]">
           <iframe
             className="absolute inset-0 w-full h-full rounded-lg"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=${autoplay ? 1 : 0}&mute=1`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            src={`https://www.youtube.com/embed/${videoId}?${youtubeParams.toString()}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             title={title || "YouTube video"}
           />
@@ -195,20 +249,101 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
-  // For direct video files (non-YouTube)
   return (
-    <div className={`relative w-full h-full overflow-hidden ${className}`}>
+    <div className={`relative w-full h-full overflow-hidden ${className}`} ref={containerRef}>
       <video
+        ref={videoRef}
         className="w-full h-full object-cover rounded-lg"
-        controls
         playsInline
         autoPlay={autoplay}
-        muted={autoplay}
+        muted={isMuted}
         poster={thumbnailUrl}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
       >
         <source src={url} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
+
+      {/* Custom Controls */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity">
+        <div className="flex items-center justify-between gap-4">
+          {/* Play/Pause */}
+          <button
+            onClick={togglePlay}
+            className="text-white hover:text-gray-200 transition-colors"
+          >
+            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+          </button>
+
+          {/* Volume Control */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleMute}
+              className="text-white hover:text-gray-200 transition-colors"
+            >
+              {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={isMuted ? 0 : volume}
+              onChange={handleVolumeChange}
+              className="w-24 h-1 bg-white/50 rounded-full appearance-none cursor-pointer"
+            />
+          </div>
+
+          {/* Title */}
+          {title && (
+            <div className="flex-grow">
+              <h3 className="text-white text-lg font-medium truncate">{title}</h3>
+            </div>
+          )}
+
+          {/* Settings */}
+          <div className="relative">
+            <button
+              onClick={toggleSettings}
+              className="text-white hover:text-gray-200 transition-colors"
+            >
+              <Settings size={24} />
+            </button>
+            {showSettings && (
+              <div className="absolute bottom-full right-0 mb-2 p-4 bg-black/90 rounded-lg">
+                <div className="text-white space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span>Playback Speed:</span>
+                    <select
+                      onChange={(e) => {
+                        if (videoRef.current) {
+                          videoRef.current.playbackRate = parseFloat(e.target.value);
+                        }
+                      }}
+                      className="bg-transparent border border-white/20 rounded"
+                    >
+                      <option value="0.5">0.5x</option>
+                      <option value="1.0" selected>1x</option>
+                      <option value="1.5">1.5x</option>
+                      <option value="2.0">2x</option>
+                    </select>
+                  </div>
+                  {/* Add more settings as needed */}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Fullscreen */}
+          <button
+            onClick={toggleFullscreen}
+            className="text-white hover:text-gray-200 transition-colors"
+          >
+            {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
