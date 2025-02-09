@@ -37,7 +37,7 @@ const QuizTaking: React.FC = () => {
     }
     const fetchQuiz = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/quizzes/${quizId}`);
+        const response = await fetch(`https://online-school-platform.onrender.com/api/quizzes/${quizId}`);
         if (!response.ok) {
           throw new Error(`Server responded with ${response.status}`);
         }
