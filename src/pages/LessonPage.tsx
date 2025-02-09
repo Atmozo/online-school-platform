@@ -165,7 +165,7 @@ const LessonPage: React.FC = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent group-hover:from-black/70 transition-all duration-300">
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h4 className="font-medium text-white group-hover:text-blue-100">{resource.title}</h4>
+{/*                     <h4 className="font-medium text-white group-hover:text-blue-100">{resource.title}</h4> */}
                   </div>
                 </div>
               </div>
