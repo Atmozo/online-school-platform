@@ -169,7 +169,7 @@ const isAuthenticated = () => {
 
 // Protected Route Wrapper
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  return isAuthenticated() ? children : <Navigate to="/dashboard" replace />;
+  return isAuthenticated() ? children : <Navigate to="/auth" replace />;
 };
 
 // Layout with Sidebar for private pages
@@ -187,7 +187,7 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         {/* Redirect users to /auth first if not logged in */}
-        <Route path="/" element={<Navigate to="/landing" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
         {/* Public Routes */}
         <Route path="/auth" element={<AuthForms />} />
