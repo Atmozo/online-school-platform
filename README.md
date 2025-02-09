@@ -1,7 +1,8 @@
 # Learn - Online School Platform
 
-EduLearn is a full-featured online learning platform that offers interactive courses, live classes, quizzes, and offline capabilities—all wrapped in a Progressive Web App (PWA). The platform provides a modern learning experience where students can enroll in courses, watch video lectures with advanced controls, take quizzes with auto-grading, and participate in live classes with real-time chat. Instructors can manage courses, create quizzes, and host live sessions.
+Learn is a full-featured online learning platform that offers interactive courses, live classes, quizzes, and offline capabilities—all wrapped in a Progressive Web App (PWA). The platform provides a modern learning experience where students can enroll in courses, watch video lectures with advanced controls, take quizzes with auto-grading, and participate in live classes with real-time chat. Instructors can manage courses, create quizzes, and host live sessions.
 
+preview  https://online-school-platform-51h8.vercel.app/
 ---
 
 ## Table of Contents
