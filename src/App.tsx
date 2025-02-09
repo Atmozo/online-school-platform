@@ -54,7 +54,7 @@ const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
     {/* Sidebar is fixed and always visible */}
     <Sidebar brandName="Learn" />
     {/* Main content has left margin matching the sidebar's width (w-80) and some padding */}
-    <div className="flex-grow:1 ">
+    <div className="flex-grow ">
       {children}
     </div>
   </div>
