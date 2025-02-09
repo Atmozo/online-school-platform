@@ -9,7 +9,7 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/auth/login', { username, password });
+      const response = await axios.post('https://online-school-platform.onrender.com/auth/login', { username, password });
       setToken(response.data.token);
       alert('Login successful');
     } catch (error) {
