@@ -35,39 +35,37 @@
 
 // export default App;
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AuthForms from './pages/AuthForms';
 import Sidebar from './components/layout/Sidebar';
 import LandingPage from './pages/LandingPage';
 import CoursePage from './pages/CoursePage';
 import LessonPage from './pages/LessonPage';
 import Dashboard from './pages/Dashboard';
-
 import QuizCreation from './pages/QuizCreation';
 import QuizzesPage from './pages/QuizzesPage';
 import LiveClass from './pages/LiveClass';
 import TaskManagementSystem from './pages/TaskManagementSystem';
 import ProjectsDashboard from './pages/ProjectsDashboard';
 
-// const PrivateLayout = ({ children }: { children: React.ReactNode }) => (
-//   <div className="flex">
-//     {/* Sidebar is fixed and always visible */}
-//     <Sidebar brandName="Learn" />
-//     {/* Main content has left margin matching the sidebar's width (w-80) and some padding */}
-//     <div className="flex-grow ">
-//       {children}
-//     </div>
-//   </div>
-// );
+// Protect routes by checking authentication
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  // Replace this with your actual auth check
+  const isAuthenticated = localStorage.getItem('token') !== null;
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  return children;
+};
+
 const PrivateLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
-      {/* Sidebar collapses on mobile, shows on larger screens */}
       <div className="w-full md:w-80 flex-shrink-0">
         <Sidebar brandName="Learn" />
       </div>
-      
-      {/* Main content takes full width on mobile, adjusts on desktop */}
       <main className="flex-grow p-4 md:p-6">
         {children}
       </main>
@@ -80,82 +78,90 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" 
-        element={
-        <PrivateLayout>
-        <LandingPage />
-        </PrivateLayout>
-        } />
         <Route path="/auth" element={<AuthForms />} />
+        
+        {/* Redirect root to auth if not authenticated */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <PrivateLayout>
+              <LandingPage />
+            </PrivateLayout>
+          </ProtectedRoute>
+        } />
 
         {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
             <PrivateLayout>
               <Dashboard />
             </PrivateLayout>
-          }
-        />
-        <Route
-          path="/courses/:id"
-          element={
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/courses/:id" element={
+          <ProtectedRoute>
             <PrivateLayout>
               <CoursePage />
             </PrivateLayout>
-          }
-        />
-        <Route
-          path="/courses/:id/lessons"
-          element={
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/courses/:id/lessons" element={
+          <ProtectedRoute>
             <PrivateLayout>
               <LessonPage />
             </PrivateLayout>
-          }
-        />
-        <Route
-          path="/task"
-          element={
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/task" element={
+          <ProtectedRoute>
             <PrivateLayout>
               <TaskManagementSystem />
             </PrivateLayout>
-          }
-        />
-        <Route
-          path="/quiz/create"
-          element={
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/quiz/create" element={
+          <ProtectedRoute>
             <PrivateLayout>
               <QuizCreation />
             </PrivateLayout>
-          }
-        />
-        <Route
-          path="/live"
-          element={
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/live" element={
+          <ProtectedRoute>
             <PrivateLayout>
-              <LiveClass roomId={''} userId={''} userName={''} role={'instructor'} />
+              <LiveClass 
+                roomId={''} 
+                userId={''} 
+                userName={''} 
+                role={'instructor'} 
+              />
             </PrivateLayout>
-          }
-        />
-        <Route
-          path="/quizzes"
-          element={
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/quizzes" element={
+          <ProtectedRoute>
             <PrivateLayout>
               <QuizzesPage />
             </PrivateLayout>
-          }
-        />
-          <Route
-          path="/projects"
-          element={
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/projects" element={
+          <ProtectedRoute>
             <PrivateLayout>
               <ProjectsDashboard />
             </PrivateLayout>
-          }
-        />
+          </ProtectedRoute>
+        } />
 
+        {/* Catch all redirect to auth */}
+        <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
-    
     </Router>
   );
 };
