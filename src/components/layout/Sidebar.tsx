@@ -245,7 +245,7 @@ const Sidebar: React.FC<SidebarProps> = ({ brandName = 'Learn' }) => {
   onClick={toggleMobileMenu}
   className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white text-blue-600 md:hidden hover:bg-gray-100 transition-colors flex items-center"
 >
-  <span className="mr-NAV">MENU</span> {/* Added MENU text */}
+  <span className="mr-4">NAV</span> {/* Added MENU text */}
   {isMobileMenuOpen ? (
     <X className="w-6 h-6" />
   ) : (
