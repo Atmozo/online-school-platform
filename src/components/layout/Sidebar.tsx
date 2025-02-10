@@ -188,7 +188,7 @@ const menuItemVariants = {
   visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 300, damping: 20 } },
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ brandName = 'EduLearn' }) => {
+const Sidebar: React.FC<SidebarProps> = ({ brandName = 'Learn' }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -245,7 +245,7 @@ const Sidebar: React.FC<SidebarProps> = ({ brandName = 'EduLearn' }) => {
   onClick={toggleMobileMenu}
   className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white text-blue-600 md:hidden hover:bg-gray-100 transition-colors flex items-center"
 >
-  <span className="mr-3">MENU</span> {/* Added MENU text */}
+  <span className="mr-NAV">MENU</span> {/* Added MENU text */}
   {isMobileMenuOpen ? (
     <X className="w-6 h-6" />
   ) : (
