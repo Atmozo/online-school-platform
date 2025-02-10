@@ -243,15 +243,16 @@ const Sidebar: React.FC<SidebarProps> = ({ brandName = 'EduLearn' }) => {
       {/* Mobile Burger Menu Button */}
 <button
   onClick={toggleMobileMenu}
-  className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-blue-600 text-white md:hidden hover:bg-blue-700 transition-colors flex items-center"
+  className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white text-blue-600 md:hidden hover:bg-gray-100 transition-colors flex items-center"
 >
-  <span className="mr-2">MENU</span> {/* Added MENU text */}
+  <span className="mr-3">MENU</span> {/* Added MENU text */}
   {isMobileMenuOpen ? (
     <X className="w-6 h-6" />
   ) : (
     <Menu className="w-6 h-6" />
   )}
 </button>
+
 
 
       {/* Desktop Sidebar */}
