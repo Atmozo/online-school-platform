@@ -248,7 +248,8 @@ const Sidebar: React.FC<SidebarProps> = ({ brandName = 'EduLearn' }) => {
         {isMobileMenuOpen ? (
           <X className="w-6 h-6" />
         ) : (
-          <Menu className="w-6 h-6" menu/>
+          <Menu className="w-6 h-6" />
+           <h6>menu</h6>
         )}
       </button>
 
