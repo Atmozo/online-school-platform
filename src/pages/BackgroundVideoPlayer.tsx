@@ -34,8 +34,12 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
         /youtube\.com\/watch\?.*v=([^&]+)/
       ];
       
-      // Alison pattern
-      const alisonPattern = /alison\.com\/topic\/learn\/(\d+)/;
+      // Alison patterns - support both course and topic URLs
+      const alisonPatterns = [
+        /alison\.com\/topic\/learn\/(\d+)/,
+        /alison\.com\/course\/([^\/\?]+)/,
+        /alison\.com\/topic\/embed\/(\d+)/
+      ];
 
       // Check YouTube
       for (const pattern of youtubePatterns) {
@@ -48,16 +52,25 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
       }
 
       // Check Alison
-      const alisonMatch = url.match(alisonPattern);
-      if (alisonMatch) {
-        setPlatform('alison');
-        setVideoId(alisonMatch[1]);
-        return;
+      for (const pattern of alisonPatterns) {
+        const match = url.match(pattern);
+        if (match) {
+          setPlatform('alison');
+          setVideoId(match[1]);
+          return;
+        }
       }
 
-      // Assume direct video URL
-      setPlatform('direct');
-      setVideoId(null);
+      // Handle direct video URLs or other formats
+      const videoExtensions = /\.(mp4|webm|ogg)$/i;
+      if (videoExtensions.test(url)) {
+        setPlatform('direct');
+        setVideoId(null);
+      } else {
+        // For any other URL, try to load it as a direct video first
+        setPlatform('direct');
+        setVideoId(null);
+      }
     };
     
     detectPlatformAndId(url);
@@ -104,6 +117,16 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
     setShowSettings(!showSettings);
   };
 
+  // Function to get the correct Alison embed URL
+  const getAlisonEmbedUrl = (courseId: string) => {
+    // If it's already an embed URL, return as is
+    if (url.includes('/topic/embed/')) {
+      return url;
+    }
+    // If it's a course URL, convert to embed format
+    return `https://alison.com/topic/embed/${courseId}`;
+  };
+
   if (platform === 'youtube' && videoId) {
     const youtubeParams = new URLSearchParams({
       autoplay: autoplay ? '1' : '0',
@@ -139,10 +162,10 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
         <div className="relative pt-[56.25%]">
           <iframe
             className="absolute inset-0 w-full h-full rounded-lg"
-            src={`https://alison.com/topic/embed/${videoId}`}
+            src={getAlisonEmbedUrl(videoId)}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
-            title={title || "Alison video"}
+            title={title || "Alison course"}
           />
         </div>
         {title && (
@@ -154,7 +177,7 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
-  // Direct video file
+  // Direct video file (unchanged)
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`} ref={containerRef}>
       <video
@@ -174,7 +197,6 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* Custom Controls */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity">
         <div className="flex items-center justify-between gap-4">
-          {/* Play/Pause */}
           <button
             onClick={togglePlay}
             className="text-white hover:text-gray-200 transition-colors"
@@ -182,7 +204,6 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
             {isPlaying ? <Pause size={24} /> : <Play size={24} />}
           </button>
 
-          {/* Volume Control */}
           <div className="flex items-center gap-2">
             <button
               onClick={toggleMute}
@@ -201,14 +222,12 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
             />
           </div>
 
-          {/* Title */}
           {title && (
             <div className="flex-grow">
               <h3 className="text-white text-lg font-medium truncate">{title}</h3>
             </div>
           )}
 
-          {/* Settings */}
           <div className="relative">
             <button
               onClick={toggleSettings}
@@ -240,7 +259,6 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
             )}
           </div>
 
-          {/* Fullscreen */}
           <button
             onClick={toggleFullscreen}
             className="text-white hover:text-gray-200 transition-colors"
