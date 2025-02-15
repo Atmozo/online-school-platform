@@ -1,4 +1,4 @@
-// routes/resources.js
+
 const express = require('express');
 const db = require('../db/connection');
 const NodeCache = require('node-cache');
@@ -32,11 +32,9 @@ router.get('/courses/:courseId/resources', async (req, res) => {
     res.status(500).json({ error: "Failed to fetch resources" });
   }
 });
-
-// Optionally: Invalidate the cache when a resource is added or updated
 router.post('/lessons/:lessonId/resources', async (req, res) => {
   const { lessonId } = req.params;
-  // You might also receive courseId in the body or look it up from the lesson.
+  
   const { title, url, type, courseId } = req.body; 
   try {
     const [result] = await db.query(
