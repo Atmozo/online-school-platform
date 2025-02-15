@@ -110,11 +110,7 @@ router.post('/forgot-password', async (req, res) => {
           return res.status(404).json({ error: 'User not found' });
       }
 
-      // Since we don't have reset token fields in the database,
-      // you would need to either:
-      // 1. Add reset token fields to the database, or
-      // 2. Use a separate table for password reset tokens, or
-      // 3. Implement a JWT-based reset system
+   
       
       res.status(200).json({
           message: 'Password reset instructions sent to email'
