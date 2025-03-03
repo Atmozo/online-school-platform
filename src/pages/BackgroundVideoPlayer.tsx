@@ -16,7 +16,7 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
   thumbnailUrl,
   autoplay = false
 }) => {
-  const [platform, setPlatform] = useState<'youtube' | 'alison' | 'google' | 'direct' | null>(null);
+  const [platform, setPlatform] = useState<'youtube' | 'alison' | 'google' | 'googleDrive' | 'direct' | null>(null);
   const [videoId, setVideoId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(autoplay);
   const [isMuted, setIsMuted] = useState(autoplay);
@@ -47,6 +47,12 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
         /video\.google\.com\/view\?docid=([^&]+)/
       ];
 
+      // Google Drive patterns
+      const googleDrivePatterns = [
+        /drive\.google\.com\/file\/d\/([^\/]+)\/view/,
+        /drive\.google\.com\/open\?id=([^&]+)/
+      ];
+
       // Check YouTube
       for (const pattern of youtubePatterns) {
         const match = url.match(pattern);
@@ -72,6 +78,16 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
         const match = url.match(pattern);
         if (match) {
           setPlatform('google');
+          setVideoId(match[1]);
+          return;
+        }
+      }
+
+      // Check Google Drive
+      for (const pattern of googleDrivePatterns) {
+        const match = url.match(pattern);
+        if (match) {
+          setPlatform('googleDrive');
           setVideoId(match[1]);
           return;
         }
@@ -148,6 +164,11 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
     return `https://video.google.com/embed/videoplay?docid=${videoId}`;
   };
 
+  // Function to get the correct Google Drive embed URL
+  const getGoogleDriveEmbedUrl = (fileId: string) => {
+    return `https://drive.google.com/file/d/${fileId}/preview`;
+  };
+
   if (platform === 'youtube' && videoId) {
     const youtubeParams = new URLSearchParams({
       autoplay: autoplay ? '1' : '0',
@@ -208,6 +229,27 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
             title={title || "Google video"}
+          />
+        </div>
+        {title && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
+            <h3 className="text-white text-lg font-medium">{title}</h3>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (platform === 'googleDrive' && videoId) {
+    return (
+      <div className={`relative w-full ${className}`} ref={containerRef}>
+        <div className="relative pt-[56.25%]">
+          <iframe
+            className="absolute inset-0 w-full h-full rounded-lg"
+            src={getGoogleDriveEmbedUrl(videoId)}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allowFullScreen
+            title={title || "Google Drive video"}
           />
         </div>
         {title && (
