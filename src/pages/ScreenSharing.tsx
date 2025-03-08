@@ -61,16 +61,22 @@ const ScreenSharing = ({
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
-        audio: true
+        audio: false
       });
-      
+    // Debugging: Check if the stream is valid
+    console.log("Screen Stream:", stream);
+    stream.getTracks().forEach(track => {
+      console.log(`Track kind: ${track.kind}, Enabled: ${track.enabled}, ReadyState: ${track.readyState}`);
+    });
+     
 
       setScreenStream(stream);
       setIsSharing(true);
 
       if (screenVideoRef.current) {
+        screenVideoRef.current.srcObject = null; 
         screenVideoRef.current.srcObject = stream;
-        console.log("Set screen stream to video element via ref");
+        console.log("Set screen stream to video element via ref",stream);
       }
       socket.emit('screenStreamReady', { roomId, userId });
 
@@ -156,7 +162,8 @@ const ScreenSharing = ({
           id="shared-screen-video"
           autoPlay
           playsInline
-          className={`w-full rounded-lg ${shouldShowVideo ? '' : 'hidden'}`}
+          className="w-full rounded-lg"
+
         />
           {remoteScreenUserId && !isSharing && (
             <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
