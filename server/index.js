@@ -150,6 +150,78 @@ io.on('connection', (socket) => {
       });
     }
   });
+  // whitebord
+socket.on('whiteboardDraw', (drawEvent) => {
+  const { roomId } = drawEvent;
+  console.log(`Received whiteboard draw event in room ${roomId} from ${drawEvent.userId}`);
+  socket.to(roomId).emit('whiteboardDraw', drawEvent);
+});
+
+socket.on('whiteboardClear', ({ roomId }) => {
+  console.log(`Received whiteboard clear event in room ${roomId}`);
+  socket.to(roomId).emit('whiteboardClear');
+});
+
+// New handlers for whiteboard access control
+socket.on('whiteboardAccessRequest', (request) => {
+  const { roomId, userId, userName } = request;
+  console.log(`Whiteboard access requested by ${userName} (${userId}) in room ${roomId}`);
+  
+  // Find instructor sockets in the room and forward the request
+  const roomSockets = io.sockets.adapter.rooms.get(roomId);
+  if (roomSockets) {
+    roomSockets.forEach(socketId => {
+      const clientSocket = io.sockets.sockets.get(socketId);
+      // We need to have a way to identify instructors - this could be stored in a map or in socket data
+      // This is a simplified example
+      const socketData = getSocketData(socketId);
+      if (socketData && socketData.role === 'instructor') {
+        clientSocket.emit('whiteboardAccessRequest', { userId, userName });
+      }
+    });
+  }
+});
+
+socket.on('whiteboardAccessResponse', (response) => {
+  const { roomId, userId, granted } = response;
+  console.log(`Whiteboard access for ${userId} in room ${roomId}: ${granted ? 'granted' : 'denied'}`);
+  
+  // Find the specific student socket and send the response
+  const roomSockets = io.sockets.adapter.rooms.get(roomId);
+  if (roomSockets) {
+    roomSockets.forEach(socketId => {
+      const clientSocket = io.sockets.sockets.get(socketId);
+      const socketData = getSocketData(socketId);
+      if (socketData && socketData.userId === userId) {
+        clientSocket.emit('whiteboardAccessResponse', { userId, granted });
+      }
+    });
+  }
+});
+
+socket.on('whiteboardAccessRevoked', (data) => {
+  const { roomId, userId } = data;
+  console.log(`Whiteboard access revoked for ${userId} in room ${roomId}`);
+  
+  // Find the specific student socket and send the revocation
+  const roomSockets = io.sockets.adapter.rooms.get(roomId);
+  if (roomSockets) {
+    roomSockets.forEach(socketId => {
+      const clientSocket = io.sockets.sockets.get(socketId);
+      const socketData = getSocketData(socketId);
+      if (socketData && socketData.userId === userId) {
+        clientSocket.emit('whiteboardAccessRevoked', { userId });
+      }
+    });
+  }
+});
+
+// Helper function to get socket data (implementation would depend on your storage method)
+function getSocketData(socketId) {
+  // This is a placeholder - implement based on how you store socket user data
+  // Could use a Map, an array, or a database
+  return socketUserMap.get(socketId);
+}
 
   // Stream status updates
   socket.on('streamStatus', ({ roomId, status }) => {

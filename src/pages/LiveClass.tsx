@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-import socketIO from 'socket.io-client';
+import io from 'socket.io-client';
 import { Mic, MicOff, Video, VideoOff, MessageSquare, Users, X, Send } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,19 +34,9 @@ interface SignalingPayload {
   candidate?: RTCIceCandidateInit;
 }
 
-const LiveClass = ({ 
-  roomId, 
-  userId, 
-  userName, 
-  role 
-}: { 
-  roomId: string;
-  userId: string;
-  userName: string;
-  role: 'instructor' | 'student';
-}) => {
+const LiveClass = () => {
   // State management
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<ReturnType<typeof io> | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [messageInput, setMessageInput] = useState('');
@@ -56,37 +45,53 @@ const LiveClass = ({
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [roomId, setRoomId] = useState<string>('');
+  const [userId, setUserId] = useState<string>(Math.random().toString(36).substring(7));
+  const [userName, setUserName] = useState<string>('');
+  const [role, setRole] = useState<'instructor' | 'student'>('student');
+  const [isJoined, setIsJoined] = useState<boolean>(false);
   
   // Refs
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Initialize socket connection and media stream
+  // Initialize socket when component mounts
   useEffect(() => {
-    const newSocket = socketIO('https://online-school-platform.onrender.com');
-    setSocket(newSocket);
+    if (isJoined) {
+      const newSocket = io('https://online-school-platform.onrender.com');
+      setSocket(newSocket);
+  
+      return () => {
+        newSocket.close();
+      };
+    }
+  }, [isJoined]);
 
-    // Get user media
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        setLocalStream(stream);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-        }
-      })
-      .catch((error) => console.error('Error accessing media devices:', error));
+  // Initialize media stream after joining
+  useEffect(() => {
+    if (isJoined && !localStream) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          setLocalStream(stream);
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+          }
+        })
+        .catch((error) => console.error('Error accessing media devices:', error));
+    }
 
     return () => {
-      localStream?.getTracks().forEach(track => track.stop());
-      newSocket.close();
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
     };
-  }, []);
+  }, [isJoined, localStream]);
 
   // Socket event handlers
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !isJoined) return;
 
     socket.emit('joinRoom', { roomId, userId, userName, role });
 
@@ -140,7 +145,7 @@ const LiveClass = ({
       socket.off('answer');
       socket.off('iceCandidate');
     };
-  }, [socket, roomId, userId, userName, role]);
+  }, [socket, roomId, userId, userName, role, isJoined]);
 
   // Create and manage peer connections
   const createPeerConnection = (targetId: string) => {
@@ -205,6 +210,89 @@ const LiveClass = ({
     }
   };
 
+  // Join room handler
+  const handleJoinRoom = () => {
+    if (!userName.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+    if (!roomId) {
+      alert('Please select a room');
+      return;
+    }
+    setIsJoined(true);
+  };
+
+  // If not joined, show login screen
+  if (!isJoined) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <Card className="w-full max-w-md p-6">
+          <h2 className="text-2xl font-bold mb-6 text-center">Join Live Class</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Your Name</label>
+              <Input 
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder="Enter your name"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">Select Role</label>
+              <div className="flex gap-4">
+                <Button
+                  type="button"
+                  variant={role === 'student' ? 'default' : 'outline'}
+                  className="flex-1"
+                  onClick={() => setRole('student')}
+                >
+                  Student
+                </Button>
+                <Button
+                  type="button"
+                  variant={role === 'instructor' ? 'default' : 'outline'}
+                  className="flex-1"
+                  onClick={() => setRole('instructor')}
+                >
+                  Instructor
+                </Button>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">Select Room</label>
+              <select
+                className="w-full p-2 border rounded-md"
+                value={roomId}
+                onChange={(e) => setRoomId(e.target.value)}
+                required
+              >
+                <option value="" disabled>Select a room</option>
+                <option value="manual-testing">Manual Testing</option>
+                <option value="automation-testing">Automation Testing</option>
+                <option value="java-basics">Java Basics</option>
+                <option value="js-basics">JS Basics</option>
+                <option value="python-basics">Python Basics</option>
+              </select>
+            </div>
+            
+            <Button 
+              className="w-full mt-6" 
+              onClick={handleJoinRoom}
+            >
+              Join Class
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Main component UI
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Main content area */}
@@ -212,17 +300,16 @@ const LiveClass = ({
       
         {/* Video grid */}
         <div className="flex-1 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Local video */}
-          
+          {/* Engagement features */}
           <EngagementFeatures
-            socket={socket}
+            socket={socket}userId
             roomId={roomId}
-            userId={userId}
+            userId={userId} 
             userName={userName}
             isInstructor={role === 'instructor'}
           />
           
-          
+          {/* Local video */}
           <Card className="relative">
             <video
               ref={localVideoRef}
@@ -232,12 +319,10 @@ const LiveClass = ({
               className="w-full h-full object-cover rounded-lg"
             />
             
-            
             <div className="absolute bottom-4 left-4 text-white bg-black/50 px-2 py-1 rounded">
               You ({role})
             </div>
           </Card>
-          
           
           {/* Remote videos */}
           {participants
@@ -291,8 +376,21 @@ const LiveClass = ({
             <Users />
           </Button>
         </div>
-      <Whiteboard socket={undefined} roomId={''} userId={''}/>
-      <ScreenSharing socket={socket} roomId={roomId} userId={userId} isInstructor={role === 'instructor'} peerConnections={peerConnections.current}/>
+        
+        {/* Additional components */}
+        <Whiteboard 
+          socket={socket} 
+          roomId={roomId} 
+          userId={userId} 
+           isInstructor={role === 'instructor'} 
+/>
+        <ScreenSharing 
+          socket={socket} 
+          roomId={roomId} 
+          userId={userId} 
+          isInstructor={role === 'instructor'} 
+          peerConnections={peerConnections.current}
+        />
       </div>
 
       {/* Chat sidebar */}
@@ -309,7 +407,7 @@ const LiveClass = ({
             </Button>
           </div>
           
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4" ref={chatScrollRef}>
             {chatMessages.map(msg => (
               <div key={msg.id} className="mb-4">
                 <div className="flex items-center gap-2">
@@ -368,11 +466,8 @@ const LiveClass = ({
                 )}
               </div>
             ))}
-
           </ScrollArea>
-          
         </Card>
-        
       )}
     </div>
   );
