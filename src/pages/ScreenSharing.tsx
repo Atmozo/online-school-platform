@@ -63,13 +63,16 @@ const ScreenSharing = ({
         video: true,
         audio: true
       });
+      
 
       setScreenStream(stream);
       setIsSharing(true);
 
       if (screenVideoRef.current) {
         screenVideoRef.current.srcObject = stream;
+        console.log("Set screen stream to video element via ref");
       }
+      socket.emit('screenStreamReady', { roomId, userId });
 
       // Add screen share track to all peer connections with a specific stream ID prefix
       peerConnections.forEach((pc, peerId) => {
@@ -148,13 +151,13 @@ const ScreenSharing = ({
 
       {shouldShowVideo && (
         <Card className="relative mt-4">
-          <video
-            ref={screenVideoRef}
-            id="shared-screen-video"
-            autoPlay
-            playsInline
-            className="w-full rounded-lg"
-          />
+        <video
+          ref={screenVideoRef}
+          id="shared-screen-video"
+          autoPlay
+          playsInline
+          className={`w-full rounded-lg ${shouldShowVideo ? '' : 'hidden'}`}
+        />
           {remoteScreenUserId && !isSharing && (
             <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
               Screen shared by user: {remoteScreenUserId}
