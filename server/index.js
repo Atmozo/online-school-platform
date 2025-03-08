@@ -293,7 +293,34 @@ socket.on('endPoll', ({ roomId, pollId }) => {
     io.to(roomId).emit('pollEnded', { pollId });
   }
 });
+// Handle screen sharing
+ socket.on('startScreenShare', ({ roomId, userId }) => {
+    console.log(`User ${userId} started screen sharing in room ${roomId}`);
+    // Broadcast to all other clients in the room that this user has started sharing
+    socket.to(roomId).emit('userStartedSharing', { userId });
+  });
 
+  // Handle screen sharing stop
+  socket.on('stopScreenShare', ({ roomId, userId }) => {
+    console.log(`User ${userId} stopped screen sharing in room ${roomId}`);
+    // Broadcast to all other clients in the room that this user has stopped sharing
+    socket.to(roomId).emit('userStoppedSharing', { userId });
+  });
+
+  // Handle screen track added notification
+  socket.on('screenTrackAdded', ({ roomId, userId, targetId }) => {
+    console.log(`User ${userId} added screen track to peer ${targetId} in room ${roomId}`);
+    // If a specific target is provided, send only to that user
+    if (targetId) {
+      const targetSocket = io.sockets.sockets.get(targetId);
+      if (targetSocket) {
+        targetSocket.emit('screenTrackAdded', { userId });
+      }
+    } else {
+      // Otherwise broadcast to all users in the room
+      socket.to(roomId).emit('screenTrackAdded', { userId });
+    }
+  });
 // Q&A
 socket.on('askQuestion', ({ roomId, question }) => {
   // Store question in memory or database

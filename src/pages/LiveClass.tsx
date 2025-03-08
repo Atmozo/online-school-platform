@@ -50,10 +50,12 @@ const LiveClass = () => {
   const [userName, setUserName] = useState<string>('');
   const [role, setRole] = useState<'instructor' | 'student'>('student');
   const [isJoined, setIsJoined] = useState<boolean>(false);
+  const [activeScreenShares, setActiveScreenShares] = useState<Map<string, MediaStream>>(new Map());
   
   // Refs
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const remoteScreenRef = useRef<HTMLVideoElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Initialize socket when component mounts
@@ -138,12 +140,18 @@ const LiveClass = () => {
       }
     });
 
+    // Handle screen sharing notification
+    socket.on('screenTrackAdded', ({ userId: sharingUserId }) => {
+      console.log(`Received screen track notification from ${sharingUserId}`);
+    });
+
     return () => {
       socket.off('roomParticipants');
       socket.off('chatMessage');
       socket.off('offer');
       socket.off('answer');
       socket.off('iceCandidate');
+      socket.off('screenTrackAdded');
     };
   }, [socket, roomId, userId, userName, role, isJoined]);
 
@@ -165,11 +173,65 @@ const LiveClass = () => {
 
     pc.ontrack = (event) => {
       const participant = participants.find(p => p.socketId === targetId);
+      
       if (participant) {
-        const videoElement = document.getElementById(`video-${targetId}`) as HTMLVideoElement;
-        if (videoElement) {
-          videoElement.srcObject = event.streams[0];
+        // Check if this is a screen share track
+        // Screen share tracks typically have displaySurface in the settings
+        const videoTrack = event.streams[0].getVideoTracks()[0];
+        if (videoTrack) {
+          const trackSettings = videoTrack.getSettings();
+          
+          // If this is likely a screen share track (based on settings or stream ID)
+          if (trackSettings.displaySurface || 
+              (trackSettings.width && trackSettings.width > 1000) || 
+              event.streams[0].id.includes('screen')) {
+            
+            console.log('Detected screen share track:', event.streams[0].id);
+            
+            // Update the shared screen video element
+            const sharedScreenVideo = document.getElementById('shared-screen-video') as HTMLVideoElement;
+            if (sharedScreenVideo) {
+              sharedScreenVideo.srcObject = event.streams[0];
+            }
+            
+            // Store the screen share stream
+            setActiveScreenShares(prev => {
+              const newMap = new Map(prev);
+              newMap.set(participant.userId, event.streams[0]);
+              return newMap;
+            });
+          } else {
+            // This is a regular camera video track
+            const videoElement = document.getElementById(`video-${targetId}`) as HTMLVideoElement;
+            if (videoElement) {
+              videoElement.srcObject = event.streams[0];
+            }
+          }
+        } else {
+          // If no video track, assume it's a regular stream
+          const videoElement = document.getElementById(`video-${targetId}`) as HTMLVideoElement;
+          if (videoElement) {
+            videoElement.srcObject = event.streams[0];
+          }
         }
+      }
+    };
+
+    // Handle negotiation needed event (important for screen sharing)
+    pc.onnegotiationneeded = async () => {
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        
+        if (socket) {
+          socket.emit('offer', {
+            target: targetId,
+            offer,
+            roomId
+          });
+        }
+      } catch (err) {
+        console.error('Error creating offer:', err);
       }
     };
 
@@ -302,7 +364,7 @@ const LiveClass = () => {
         <div className="flex-1 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Engagement features */}
           <EngagementFeatures
-            socket={socket}userId
+            socket={socket}
             roomId={roomId}
             userId={userId} 
             userName={userName}
@@ -342,6 +404,23 @@ const LiveClass = () => {
             ))}
         </div>
 
+        {/* Screen Sharing component */}
+        <ScreenSharing 
+          socket={socket} 
+          roomId={roomId} 
+          userId={userId} 
+          isInstructor={role === 'instructor'} 
+          peerConnections={peerConnections.current}
+        />
+
+        {/* Additional components */}
+        <Whiteboard 
+          socket={socket} 
+          roomId={roomId} 
+          userId={userId} 
+          isInstructor={role === 'instructor'} 
+        />
+
         {/* Control bar */}
         <div className="bg-white p-4 flex items-center justify-center space-x-4">
           <Button
@@ -376,21 +455,6 @@ const LiveClass = () => {
             <Users />
           </Button>
         </div>
-        
-        {/* Additional components */}
-        <Whiteboard 
-          socket={socket} 
-          roomId={roomId} 
-          userId={userId} 
-           isInstructor={role === 'instructor'} 
-/>
-        <ScreenSharing 
-          socket={socket} 
-          roomId={roomId} 
-          userId={userId} 
-          isInstructor={role === 'instructor'} 
-          peerConnections={peerConnections.current}
-        />
       </div>
 
       {/* Chat sidebar */}

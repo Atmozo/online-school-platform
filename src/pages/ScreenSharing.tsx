@@ -3,9 +3,8 @@ import { Monitor, StopCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-
 interface ScreenSharingProps {
-  socket: Socket;
+  socket: any;
   roomId: string;
   userId: string;
   isInstructor: boolean;
@@ -22,34 +21,46 @@ const ScreenSharing = ({
   const [isSharing, setIsSharing] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const [remoteScreenUserId, setRemoteScreenUserId] = useState<string | null>(null);
   const screenVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('userStartedSharing', ({ userId: sharingUserId }: { userId: string }) => {
+    // Handle when another user starts sharing their screen
+    socket.on('userStartedSharing', ({ userId: sharingUserId }) => {
       console.log(`User ${sharingUserId} started sharing screen`);
+      setRemoteScreenUserId(sharingUserId);
     });
 
-    socket.on('userStoppedSharing', ({ userId: sharingUserId }: { userId: string }) => {
+    // Handle when a user stops sharing their screen
+    socket.on('userStoppedSharing', ({ userId: sharingUserId }) => {
       console.log(`User ${sharingUserId} stopped sharing screen`);
-      if (screenVideoRef.current) {
+      if (remoteScreenUserId === sharingUserId) {
+        setRemoteScreenUserId(null);
+      }
+      if (screenVideoRef.current && !isSharing) {
         screenVideoRef.current.srcObject = null;
       }
+    });
+
+    // Handle new incoming screen sharing tracks
+    socket.on('screenTrackAdded', ({ userId: sharingUserId }) => {
+      console.log(`Received screen track notification from ${sharingUserId}`);
     });
 
     return () => {
       socket.off('userStartedSharing');
       socket.off('userStoppedSharing');
+      socket.off('screenTrackAdded');
       stopSharing();
     };
-  }, [socket]);
+  }, [socket, remoteScreenUserId, isSharing]);
 
   const startSharing = async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-        },
+        video: true,
         audio: true
       });
 
@@ -60,10 +71,18 @@ const ScreenSharing = ({
         screenVideoRef.current.srcObject = stream;
       }
 
-      // Add screen share track to all peer connections
-      peerConnections.forEach((pc) => {
+      // Add screen share track to all peer connections with a specific stream ID prefix
+      peerConnections.forEach((pc, peerId) => {
         stream.getTracks().forEach(track => {
+          // Mark this track as a screen share
           pc.addTrack(track, stream);
+          
+          // Notify peers that we've added a screen track
+          socket.emit('screenTrackAdded', { 
+            roomId, 
+            userId,
+            targetId: peerId 
+          });
         });
       });
 
@@ -100,10 +119,13 @@ const ScreenSharing = ({
     }
   };
 
+  // Determine if we should show the video element
+  const shouldShowVideo = isSharing || remoteScreenUserId !== null;
+
   return (
-    <div className="relative">
+    <div className="relative mt-4">
       {isInstructor && (
-        <div className="absolute bottom-175 right-4 z-10 flex gap-2">
+        <div className="absolute bottom-4 right-4 z-10 flex gap-2">
           <Button
             variant={isSharing ? "destructive" : "default"}
             size="sm"
@@ -124,14 +146,20 @@ const ScreenSharing = ({
         </div>
       )}
 
-      {(isSharing || screenVideoRef.current?.srcObject) && (
-        <Card className="relative">
+      {shouldShowVideo && (
+        <Card className="relative mt-4">
           <video
             ref={screenVideoRef}
+            id="shared-screen-video"
             autoPlay
             playsInline
             className="w-full rounded-lg"
           />
+          {remoteScreenUserId && !isSharing && (
+            <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
+              Screen shared by user: {remoteScreenUserId}
+            </div>
+          )}
           <Button
             variant="outline"
             size="icon"
