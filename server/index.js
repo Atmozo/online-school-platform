@@ -18,10 +18,13 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
+  origin: "https://online-school-platform-51h8.vercel.app", 
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}
+
+  });
 
 app.use(cors());
 app.use(bodyParser.json());

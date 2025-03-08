@@ -60,14 +60,18 @@ const ScreenSharing = ({
   const startSharing = async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false
+        video: { cursor: "always" }, 
+        audio: false,
       });
     // Debugging: Check if the stream is valid
     console.log("Screen Stream:", stream);
     stream.getTracks().forEach(track => {
       console.log(`Track kind: ${track.kind}, Enabled: ${track.enabled}, ReadyState: ${track.readyState}`);
     });
+    if (!stream.active) {
+      console.error("Screen sharing failed: Stream is inactive.");
+      return;
+    }
      
 
       setScreenStream(stream);
@@ -76,6 +80,7 @@ const ScreenSharing = ({
       if (screenVideoRef.current) {
         screenVideoRef.current.srcObject = null; 
         screenVideoRef.current.srcObject = stream;
+        screenVideoRef.current.play();
         console.log("Set screen stream to video element via ref",stream);
       }
       socket.emit('screenStreamReady', { roomId, userId });
