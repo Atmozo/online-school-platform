@@ -51,6 +51,7 @@ const LiveClass = () => {
   const [role, setRole] = useState<'instructor' | 'student'>('student');
   const [isJoined, setIsJoined] = useState<boolean>(false);
   const [activeScreenShares, setActiveScreenShares] = useState<Map<string, MediaStream>>(new Map());
+  const [remoteCameras, setRemoteCameras] = useState<Map<string, MediaStream>>(new Map());
   
   // Refs
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -79,9 +80,28 @@ const LiveClass = () => {
           setLocalStream(stream);
           if (localVideoRef.current) {
             localVideoRef.current.srcObject = stream;
+            
+            // Force the video element to play
+            localVideoRef.current.onloadedmetadata = () => {
+              if (localVideoRef.current) {
+                localVideoRef.current.play().catch(e => 
+                  console.error("Error playing local video:", e)
+                );
+              }
+            };
           }
+          
+          // Update existing peer connections with the new stream
+          peerConnections.current.forEach((pc) => {
+            stream.getTracks().forEach(track => {
+              pc.addTrack(track, stream);
+            });
+          });
         })
-        .catch((error) => console.error('Error accessing media devices:', error));
+        .catch((error) => {
+          console.error('Error accessing media devices:', error);
+          alert('Could not access camera/microphone. Please check permissions.');
+        });
     }
 
     return () => {
@@ -99,10 +119,28 @@ const LiveClass = () => {
 
     socket.on('roomParticipants', (newParticipants: Participant[]) => {
       setParticipants(newParticipants);
+      
       // Initialize peer connections with new participants
       newParticipants.forEach(participant => {
         if (participant.socketId !== socket.id && !peerConnections.current.has(participant.socketId)) {
           createPeerConnection(participant.socketId);
+          
+          // After creating peer connection, initiate the offer
+          if (localStream) {
+            const pc = peerConnections.current.get(participant.socketId);
+            if (pc) {
+              pc.createOffer()
+                .then(offer => pc.setLocalDescription(offer))
+                .then(() => {
+                  socket.emit('offer', {
+                    target: participant.socketId,
+                    offer: pc.localDescription,
+                    roomId
+                  });
+                })
+                .catch(err => console.error('Error creating offer:', err));
+            }
+          }
         }
       });
     });
@@ -117,26 +155,49 @@ const LiveClass = () => {
     // WebRTC signaling handlers
     socket.on('offer', async ({ from, offer }: SignalingPayload) => {
       if (!offer) return;
-      const pc = createPeerConnection(from);
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      socket.emit('answer', { target: from, answer, roomId });
+      
+      console.log(`Received offer from ${from}`);
+      let pc = peerConnections.current.get(from);
+      
+      if (!pc) {
+        pc = createPeerConnection(from);
+      }
+      
+      try {
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit('answer', { target: from, answer, roomId });
+      } catch (err) {
+        console.error('Error handling offer:', err);
+      }
     });
 
     socket.on('answer', async ({ from, answer }: SignalingPayload) => {
       if (!answer) return;
+      
+      console.log(`Received answer from ${from}`);
       const pc = peerConnections.current.get(from);
       if (pc) {
-        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        } catch (err) {
+          console.error('Error setting remote description:', err);
+        }
       }
     });
 
     socket.on('iceCandidate', async ({ from, candidate }: SignalingPayload) => {
       if (!candidate) return;
+      
+      console.log(`Received ICE candidate from ${from}`);
       const pc = peerConnections.current.get(from);
       if (pc) {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.error('Error adding ICE candidate:', err);
+        }
       }
     });
 
@@ -153,16 +214,22 @@ const LiveClass = () => {
       socket.off('iceCandidate');
       socket.off('screenTrackAdded');
     };
-  }, [socket, roomId, userId, userName, role, isJoined]);
+  }, [socket, roomId, userId, userName, role, isJoined, localStream]);
 
   // Create and manage peer connections
   const createPeerConnection = (targetId: string) => {
+    console.log(`Creating peer connection with ${targetId}`);
+    
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
     });
 
     pc.onicecandidate = (event) => {
       if (event.candidate && socket) {
+        console.log(`Sending ICE candidate to ${targetId}`);
         socket.emit('iceCandidate', {
           target: targetId,
           candidate: event.candidate,
@@ -171,47 +238,67 @@ const LiveClass = () => {
       }
     };
 
+    pc.oniceconnectionstatechange = () => {
+      console.log(`ICE connection state with ${targetId}: ${pc.iceConnectionState}`);
+    };
+
     pc.ontrack = (event) => {
+      console.log(`Received track from ${targetId}`, event.streams[0]);
+      
       const participant = participants.find(p => p.socketId === targetId);
       
-      if (participant) {
+      if (participant && event.streams && event.streams[0]) {
+        const stream = event.streams[0];
+        
         // Check if this is a screen share track
-        // Screen share tracks typically have displaySurface in the settings
-        const videoTrack = event.streams[0].getVideoTracks()[0];
+        const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
           const trackSettings = videoTrack.getSettings();
           
-          // If this is likely a screen share track (based on settings or stream ID)
+          // If this is likely a screen share track
           if (trackSettings.displaySurface || 
               (trackSettings.width && trackSettings.width > 1000) || 
-              event.streams[0].id.includes('screen')) {
+              stream.id.includes('screen')) {
             
-            console.log('Detected screen share track:', event.streams[0].id);
+            console.log('Detected screen share track:', stream.id);
             
             // Update the shared screen video element
             const sharedScreenVideo = document.getElementById('shared-screen-video') as HTMLVideoElement;
             if (sharedScreenVideo) {
-              sharedScreenVideo.srcObject = event.streams[0];
+              sharedScreenVideo.srcObject = stream;
             }
             
             // Store the screen share stream
             setActiveScreenShares(prev => {
               const newMap = new Map(prev);
-              newMap.set(participant.userId, event.streams[0]);
+              newMap.set(participant.userId, stream);
               return newMap;
             });
           } else {
             // This is a regular camera video track
+            console.log('Detected camera track:', stream.id);
+            
+            // Store the remote camera stream in state
+            setRemoteCameras(prev => {
+              const newMap = new Map(prev);
+              newMap.set(participant.socketId, stream);
+              return newMap;
+            });
+
+            // Update video element
             const videoElement = document.getElementById(`video-${targetId}`) as HTMLVideoElement;
             if (videoElement) {
-              videoElement.srcObject = event.streams[0];
+              videoElement.srcObject = stream;
+              
+              // Force the video to play
+              videoElement.onloadedmetadata = () => {
+                if (videoElement) {
+                  videoElement.play().catch(e => 
+                    console.error(`Error playing remote video for ${targetId}:`, e)
+                  );
+                }
+              };
             }
-          }
-        } else {
-          // If no video track, assume it's a regular stream
-          const videoElement = document.getElementById(`video-${targetId}`) as HTMLVideoElement;
-          if (videoElement) {
-            videoElement.srcObject = event.streams[0];
           }
         }
       }
@@ -220,6 +307,7 @@ const LiveClass = () => {
     // Handle negotiation needed event (important for screen sharing)
     pc.onnegotiationneeded = async () => {
       try {
+        console.log(`Negotiation needed with ${targetId}`);
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         
@@ -236,6 +324,7 @@ const LiveClass = () => {
     };
 
     if (localStream) {
+      console.log(`Adding local tracks to peer connection with ${targetId}`);
       localStream.getTracks().forEach(track => {
         pc.addTrack(track, localStream);
       });
@@ -248,19 +337,25 @@ const LiveClass = () => {
   // Media control handlers
   const toggleAudio = () => {
     if (localStream) {
-      const audioTrack = localStream.getAudioTracks()[0];
-      audioTrack.enabled = !audioTrack.enabled;
-      setIsAudioEnabled(audioTrack.enabled);
-      socket?.emit('streamStatus', { roomId, status: { audio: audioTrack.enabled } });
+      const audioTracks = localStream.getAudioTracks();
+      if (audioTracks.length > 0) {
+        const audioTrack = audioTracks[0];
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsAudioEnabled(audioTrack.enabled);
+        socket?.emit('streamStatus', { roomId, status: { audio: audioTrack.enabled } });
+      }
     }
   };
 
   const toggleVideo = () => {
     if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      videoTrack.enabled = !videoTrack.enabled;
-      setIsVideoEnabled(videoTrack.enabled);
-      socket?.emit('streamStatus', { roomId, status: { video: videoTrack.enabled } });
+      const videoTracks = localStream.getVideoTracks();
+      if (videoTracks.length > 0) {
+        const videoTrack = videoTracks[0];
+        videoTrack.enabled = !videoTrack.enabled;
+        setIsVideoEnabled(videoTrack.enabled);
+        socket?.emit('streamStatus', { roomId, status: { video: videoTrack.enabled } });
+      }
     }
   };
 
@@ -372,7 +467,7 @@ const LiveClass = () => {
           />
           
           {/* Local video */}
-          <Card className="relative">
+          <Card className="relative overflow-hidden">
             <video
               ref={localVideoRef}
               autoPlay
@@ -380,9 +475,13 @@ const LiveClass = () => {
               playsInline
               className="w-full h-full object-cover rounded-lg"
             />
-            
+            {!localStream && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                <p>Loading camera...</p>
+              </div>
+            )}
             <div className="absolute bottom-4 left-4 text-white bg-black/50 px-2 py-1 rounded">
-              You ({role})
+              You ({role}) {!isVideoEnabled && "(Video Off)"}
             </div>
           </Card>
           
@@ -390,13 +489,18 @@ const LiveClass = () => {
           {participants
             .filter(p => p.socketId !== socket?.id)
             .map(participant => (
-              <Card key={participant.socketId} className="relative">
+              <Card key={participant.socketId} className="relative overflow-hidden">
                 <video
                   id={`video-${participant.socketId}`}
                   autoPlay
                   playsInline
                   className="w-full h-full object-cover rounded-lg"
                 />
+                {!remoteCameras.has(participant.socketId) && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                    <p>Waiting for video...</p>
+                  </div>
+                )}
                 <div className="absolute bottom-4 left-4 text-white bg-black/50 px-2 py-1 rounded">
                   {participant.userName} ({participant.role})
                 </div>
