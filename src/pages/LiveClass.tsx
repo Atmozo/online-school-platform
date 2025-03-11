@@ -166,7 +166,7 @@ const LiveClass = () => {
   // Retry media access when retry count changes
   useEffect(() => {
     if (retryCount > 0 && isJoined) {
-      console.log(`Retrying media access, attempt ${retryCount}`);
+      console.log(`Retrying media Access, attempt ${retryCount}`);
       initializeMediaStream();
     }
   }, [retryCount]);
