@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
-import { Mic, MicOff, Video, VideoOff, MessageSquare, Users, X, Send } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, MessageSquare, Users, X, Send, Camera, AlertTriangle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +52,8 @@ const LiveClass = () => {
   const [isJoined, setIsJoined] = useState<boolean>(false);
   const [activeScreenShares, setActiveScreenShares] = useState<Map<string, MediaStream>>(new Map());
   const [remoteCameras, setRemoteCameras] = useState<Map<string, MediaStream>>(new Map());
+  const [mediaError, setMediaError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   
   // Refs
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -71,37 +73,87 @@ const LiveClass = () => {
     }
   }, [isJoined]);
 
+  // Function to initialize media stream with fallbacks
+  const initializeMediaStream = async (videoEnabled = true) => {
+    try {
+      // Try to get both audio and video
+      const constraints = {
+        audio: true,
+        video: videoEnabled ? { 
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: "user"
+        } : false
+      };
+      
+      console.log("Requesting media with constraints:", constraints);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      console.log("Media stream obtained successfully:", stream.getTracks().map(t => t.kind).join(', '));
+      setLocalStream(stream);
+      setMediaError(null);
+      
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+        
+        // Force the video element to play
+        localVideoRef.current.onloadedmetadata = () => {
+          if (localVideoRef.current) {
+            localVideoRef.current.play().catch(e => {
+              console.error("Error playing local video:", e);
+              setMediaError("Error playing video. Please refresh and try again.");
+            });
+          }
+        };
+      }
+      
+      // Update existing peer connections with the new stream
+      peerConnections.current.forEach((pc) => {
+        stream.getTracks().forEach(track => {
+          pc.addTrack(track, stream);
+        });
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+      
+      // If we failed with video, try audio only
+      if (videoEnabled) {
+        console.log("Failed to get video, trying audio only");
+        setIsVideoEnabled(false);
+        const success = await initializeMediaStream(false);
+        
+        if (success) {
+          setMediaError("Camera not available. Using audio only.");
+          return true;
+        }
+      }
+      
+      setMediaError(
+        error instanceof DOMException 
+          ? `Media error: ${error.name}. ${error.message}`
+          : "Could not access camera/microphone. Please check permissions."
+      );
+      
+      // Create an empty stream to allow joining without media
+      if (!localStream) {
+        const emptyStream = new MediaStream();
+        setLocalStream(emptyStream);
+        
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = emptyStream;
+        }
+      }
+      
+      return false;
+    }
+  };
+
   // Initialize media stream after joining
   useEffect(() => {
     if (isJoined && !localStream) {
-      navigator.mediaDevices
-        .getUserMedia({ video: true, audio: true })
-        .then((stream) => {
-          setLocalStream(stream);
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-            
-            // Force the video element to play
-            localVideoRef.current.onloadedmetadata = () => {
-              if (localVideoRef.current) {
-                localVideoRef.current.play().catch(e => 
-                  console.error("Error playing local video:", e)
-                );
-              }
-            };
-          }
-          
-          // Update existing peer connections with the new stream
-          peerConnections.current.forEach((pc) => {
-            stream.getTracks().forEach(track => {
-              pc.addTrack(track, stream);
-            });
-          });
-        })
-        .catch((error) => {
-          console.error('Error accessing media devices:', error);
-          alert('Could not access camera/microphone. Please check permissions.');
-        });
+      initializeMediaStream();
     }
 
     return () => {
@@ -111,6 +163,14 @@ const LiveClass = () => {
     };
   }, [isJoined, localStream]);
 
+  // Retry media access when retry count changes
+  useEffect(() => {
+    if (retryCount > 0 && isJoined) {
+      console.log(`Retrying media access, attempt ${retryCount}`);
+      initializeMediaStream();
+    }
+  }, [retryCount]);
+
   // Socket event handlers
   useEffect(() => {
     if (!socket || !isJoined) return;
@@ -118,11 +178,13 @@ const LiveClass = () => {
     socket.emit('joinRoom', { roomId, userId, userName, role });
 
     socket.on('roomParticipants', (newParticipants: Participant[]) => {
+      console.log("Received room participants:", newParticipants);
       setParticipants(newParticipants);
       
       // Initialize peer connections with new participants
       newParticipants.forEach(participant => {
         if (participant.socketId !== socket.id && !peerConnections.current.has(participant.socketId)) {
+          console.log(`Creating connection with ${participant.userName} (${participant.socketId})`);
           createPeerConnection(participant.socketId);
           
           // After creating peer connection, initiate the offer
@@ -201,6 +263,11 @@ const LiveClass = () => {
       }
     });
 
+    socket.on('streamStatus', ({ userId, status }) => {
+      console.log(`User ${userId} stream status changed:`, status);
+      // Handle remote stream status changes if needed
+    });
+
     // Handle screen sharing notification
     socket.on('screenTrackAdded', ({ userId: sharingUserId }) => {
       console.log(`Received screen track notification from ${sharingUserId}`);
@@ -213,6 +280,7 @@ const LiveClass = () => {
       socket.off('answer');
       socket.off('iceCandidate');
       socket.off('screenTrackAdded');
+      socket.off('streamStatus');
     };
   }, [socket, roomId, userId, userName, role, isJoined, localStream]);
 
@@ -223,13 +291,16 @@ const LiveClass = () => {
     const pc = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' }
       ]
     });
 
     pc.onicecandidate = (event) => {
       if (event.candidate && socket) {
-        console.log(`Sending ICE candidate to ${targetId}`);
+        console.log(`Sending ICE candidate to ${targetId}`, event.candidate);
         socket.emit('iceCandidate', {
           target: targetId,
           candidate: event.candidate,
@@ -240,15 +311,37 @@ const LiveClass = () => {
 
     pc.oniceconnectionstatechange = () => {
       console.log(`ICE connection state with ${targetId}: ${pc.iceConnectionState}`);
+      
+      // Handle connection state changes
+      if (pc.iceConnectionState === 'disconnected' || 
+          pc.iceConnectionState === 'failed' || 
+          pc.iceConnectionState === 'closed') {
+        
+        console.log(`Connection with ${targetId} is ${pc.iceConnectionState}`);
+        
+        // Remove from remote cameras if disconnected
+        if (remoteCameras.has(targetId)) {
+          setRemoteCameras(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(targetId);
+            return newMap;
+          });
+        }
+      }
     };
 
     pc.ontrack = (event) => {
       console.log(`Received track from ${targetId}`, event.streams[0]);
-      
       const participant = participants.find(p => p.socketId === targetId);
       
       if (participant && event.streams && event.streams[0]) {
         const stream = event.streams[0];
+        
+        // Debug track info
+        const trackInfo = event.streams[0].getTracks().map(t => 
+          `${t.kind}: enabled=${t.enabled}, muted=${t.muted}, readyState=${t.readyState}`
+        );
+        console.log(`Track details for ${participant.userName}:`, trackInfo);
         
         // Check if this is a screen share track
         const videoTrack = stream.getVideoTracks()[0];
@@ -266,6 +359,7 @@ const LiveClass = () => {
             const sharedScreenVideo = document.getElementById('shared-screen-video') as HTMLVideoElement;
             if (sharedScreenVideo) {
               sharedScreenVideo.srcObject = stream;
+              sharedScreenVideo.play().catch(e => console.error("Error playing shared screen:", e));
             }
             
             // Store the screen share stream
@@ -300,6 +394,20 @@ const LiveClass = () => {
               };
             }
           }
+        } else if (stream.getAudioTracks().length > 0) {
+          // If it's an audio-only stream, still update remote cameras to show the participant
+          console.log(`Received audio-only stream from ${participant.userName}`);
+          
+          setRemoteCameras(prev => {
+            const newMap = new Map(prev);
+            newMap.set(participant.socketId, stream);
+            return newMap;
+          });
+          
+          const videoElement = document.getElementById(`video-${targetId}`) as HTMLVideoElement;
+          if (videoElement) {
+            videoElement.srcObject = stream;
+          }
         }
       }
     };
@@ -323,11 +431,23 @@ const LiveClass = () => {
       }
     };
 
+    // Add local tracks to the peer connection
     if (localStream) {
       console.log(`Adding local tracks to peer connection with ${targetId}`);
-      localStream.getTracks().forEach(track => {
-        pc.addTrack(track, localStream);
-      });
+      const tracks = localStream.getTracks();
+      if (tracks.length > 0) {
+        tracks.forEach(track => {
+          try {
+            pc.addTrack(track, localStream);
+          } catch (err) {
+            console.error(`Error adding ${track.kind} track to connection:`, err);
+          }
+        });
+      } else {
+        console.warn("Local stream has no tracks to add");
+      }
+    } else {
+      console.warn("No local stream available when creating peer connection");
     }
 
     peerConnections.current.set(targetId, pc);
@@ -343,6 +463,27 @@ const LiveClass = () => {
         audioTrack.enabled = !audioTrack.enabled;
         setIsAudioEnabled(audioTrack.enabled);
         socket?.emit('streamStatus', { roomId, status: { audio: audioTrack.enabled } });
+      } else {
+        // Try to get audio if not available
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => {
+            const audioTrack = stream.getAudioTracks()[0];
+            if (audioTrack) {
+              localStream.addTrack(audioTrack);
+              setIsAudioEnabled(true);
+              
+              // Update peer connections with new track
+              peerConnections.current.forEach(pc => {
+                pc.addTrack(audioTrack, localStream);
+              });
+              
+              socket?.emit('streamStatus', { roomId, status: { audio: true } });
+            }
+          })
+          .catch(err => {
+            console.error("Could not add audio track:", err);
+            setMediaError("Could not enable microphone. Please check permissions.");
+          });
       }
     }
   };
@@ -350,13 +491,50 @@ const LiveClass = () => {
   const toggleVideo = () => {
     if (localStream) {
       const videoTracks = localStream.getVideoTracks();
+      
       if (videoTracks.length > 0) {
+        // If we have video tracks, toggle them
         const videoTrack = videoTracks[0];
         videoTrack.enabled = !videoTrack.enabled;
         setIsVideoEnabled(videoTrack.enabled);
         socket?.emit('streamStatus', { roomId, status: { video: videoTrack.enabled } });
+      } else if (isVideoEnabled) {
+        // We're trying to disable a non-existent video
+        setIsVideoEnabled(false);
+      } else {
+        // Try to get video if not already available
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(stream => {
+            const videoTrack = stream.getVideoTracks()[0];
+            if (videoTrack) {
+              localStream.addTrack(videoTrack);
+              setIsVideoEnabled(true);
+              
+              // Update video element
+              if (localVideoRef.current) {
+                localVideoRef.current.srcObject = localStream;
+              }
+              
+              // Update peer connections with new track
+              peerConnections.current.forEach(pc => {
+                pc.addTrack(videoTrack, localStream);
+              });
+              
+              socket?.emit('streamStatus', { roomId, status: { video: true } });
+            }
+          })
+          .catch(err => {
+            console.error("Could not add video track:", err);
+            setMediaError("Could not enable camera. Please check permissions.");
+          });
       }
     }
+  };
+
+  // Handle retry for media
+  const handleRetryMedia = () => {
+    setRetryCount(prev => prev + 1);
+    setMediaError(null);
   };
 
   // Chat handlers
@@ -455,6 +633,19 @@ const LiveClass = () => {
       {/* Main content area */}
       <div className="flex-1 flex flex-col">
       
+        {/* Media error alert */}
+        {mediaError && (
+          <div className="m-4 p-4 bg-amber-50 border border-amber-200 rounded-md flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="text-amber-500" />
+              <p className="text-amber-800">{mediaError}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleRetryMedia}>
+              Retry Camera
+            </Button>
+          </div>
+        )}
+      
         {/* Video grid */}
         <div className="flex-1 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Engagement features */}
@@ -473,13 +664,21 @@ const LiveClass = () => {
               autoPlay
               muted
               playsInline
-              className="w-full h-full object-cover rounded-lg"
+              className={`w-full h-full object-cover rounded-lg ${!isVideoEnabled || !localStream?.getVideoTracks().length ? 'hidden' : ''}`}
             />
-            {!localStream && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-                <p>Loading camera...</p>
+            
+            {/* Placeholder when video is not available */}
+            {(!localStream?.getVideoTracks().length || !isVideoEnabled) && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-200">
+                <Camera className="h-12 w-12 text-gray-400 mb-2" />
+                <p className="text-gray-600">
+                  {!localStream?.getVideoTracks().length 
+                    ? "Camera not available" 
+                    : "Video turned off"}
+                </p>
               </div>
             )}
+            
             <div className="absolute bottom-4 left-4 text-white bg-black/50 px-2 py-1 rounded">
               You ({role}) {!isVideoEnabled && "(Video Off)"}
             </div>
@@ -494,13 +693,23 @@ const LiveClass = () => {
                   id={`video-${participant.socketId}`}
                   autoPlay
                   playsInline
-                  className="w-full h-full object-cover rounded-lg"
+                  className={`w-full h-full object-cover rounded-lg ${remoteCameras.has(participant.socketId) && remoteCameras.get(participant.socketId)?.getVideoTracks().length && remoteCameras.get(participant.socketId)?.getVideoTracks()[0].enabled ? '' : 'hidden'}`}
                 />
-                {!remoteCameras.has(participant.socketId) && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-                    <p>Waiting for video...</p>
+                
+                {/* Placeholder when remote video is not available */}
+                {(!remoteCameras.has(participant.socketId) || 
+                  !remoteCameras.get(participant.socketId)?.getVideoTracks().length || 
+                  !remoteCameras.get(participant.socketId)?.getVideoTracks()[0].enabled) && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-200">
+                    <Camera className="h-12 w-12 text-gray-400 mb-2" />
+                    <p className="text-gray-600">
+                      {!remoteCameras.has(participant.socketId) 
+                        ? "Waiting for video..." 
+                        : "Video off"}
+                    </p>
                   </div>
                 )}
+                
                 <div className="absolute bottom-4 left-4 text-white bg-black/50 px-2 py-1 rounded">
                   {participant.userName} ({participant.role})
                 </div>
