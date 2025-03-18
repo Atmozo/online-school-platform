@@ -232,7 +232,8 @@ const Sidebar: React.FC<SidebarProps> = ({ brandName = 'Learn' }) => {
       <div className="mt-auto pt-8 border-t border-blue-500">
         <button className="flex items-center w-full p-4 rounded-lg hover:bg-blue-700 transition-colors text-red-300 hover:text-white">
           <LogOut className="w-6 h-6 mr-4 transition-transform hover:scale-110" />
-          <span className="text-lg font-medium">Logout</span>
+          <span className="text-lg font-medium">LOGOUT
+        </span>
         </button>
       </div>
     </motion.div>

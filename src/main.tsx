@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './global.css'; 
 import App from './App';
+import { ClerkProvider } from '@clerk/clerk-react';
+
 // Register service worker if supported
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -15,9 +17,16 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+if (!PUBLISHABLE_KEY) {
+  throw new Error('Add your Clerk Publishable Key to the .env file')
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+      <App />
+    </ClerkProvider>
+  </React.StrictMode>,
+)
