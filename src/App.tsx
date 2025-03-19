@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react'; // Use the useUser hook instead of useAuth
+import { useUser } from '@clerk/clerk-react';
 import AuthForms from './pages/AuthForms';
 import Sidebar from './components/layout/Sidebar';
 import LandingPage from './pages/LandingPage';
@@ -12,6 +12,7 @@ import QuizzesPage from './pages/QuizzesPage';
 import LiveClass from './pages/LiveClass';
 import TaskManagementSystem from './pages/TaskManagementSystem';
 import ProjectsDashboard from './pages/ProjectsDashboard';
+import CookieConsent from './components/CookieConsent';
 
 // Protect routes by checking authentication with Clerk
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -19,14 +20,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   // Show loading state while Clerk is initializing
   if (!isLoaded) {
-    return <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-    </div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+  
+  // Redirect if not authenticated
+  if (!isSignedIn) {
+    return <Navigate to="/auth" replace />;
+  }
       
   console.log("Auth state:", { isSignedIn, userId: user?.id });
   
   return <>{children}</>;
 };
+
 const PrivateLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
@@ -41,17 +51,43 @@ const PrivateLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App: React.FC = () => {
+  const { isSignedIn, isLoaded } = useUser();
+  const [showCookieBanner, setShowCookieBanner] = useState(false);
+
+  // Show cookie banner after authentication is confirmed
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      const hasConsented = localStorage.getItem('cookieConsentStatus');
+      if (!hasConsented) {
+        // Slight delay to ensure authentication is complete
+        const timer = setTimeout(() => {
+          setShowCookieBanner(true);
+        }, 1000);
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isLoaded, isSignedIn]);
+
+  const handleAcceptCookies = () => {
+    console.log('Cookies accepted');
+    // You can add analytics initialization or other cookie-dependent code here
+  };
+
+  const handleDeclineCookies = () => {
+    console.log('Cookies declined');
+    // Handle limited functionality or alternative tracking here
+  };
+
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
-        
         <Route path="/auth" element={
           isSignedIn ? <Navigate to="/dashboard" replace /> : <AuthForms />
         } />
   
-
-        <Route  path="/sso-callback" element={<div>Processing authentication...</div>} />
+        <Route path="/sso-callback" element={<div>Processing authentication...</div>} />
         
         {/* Protected Routes */}
         <Route path="/" element={
@@ -134,6 +170,14 @@ const App: React.FC = () => {
         {/* Catch all redirect to auth */}
         <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
+      
+      {/* Cookie Consent Banner */}
+      {showCookieBanner && (
+        <CookieConsent 
+          onAccept={handleAcceptCookies}
+          onDecline={handleDeclineCookies}
+        />
+      )}
     </Router>
   );
 };

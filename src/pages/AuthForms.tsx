@@ -218,10 +218,10 @@ const AuthForms: React.FC = () => {
     const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement | null;
     const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement | null;
     if (emailInput && passwordInput) {
-      emailInput.value = "test@example.com";
-      passwordInput.value = "Password123!";
-      validateEmail("test@example.com");
-      validatePassword("Password123!");
+      emailInput.value = "testuser@gmail.com";
+      passwordInput.value = "bc.v6p_DTbvZ;Ek";
+      validateEmail("testuser@gmail.com");
+      validatePassword("bc.v6p_DTbvZ;Ek");
     }
   };
 
@@ -250,8 +250,8 @@ const AuthForms: React.FC = () => {
                   Use these credentials to explore features:
                 </p>
                 <div className="text-sm text-blue-600">
-                  <p>Email: test@example.com</p>
-                  <p>Password: Password123!</p>
+                  <p>Email: testuser@gmail.com</p>
+                  <p>Password: bc.v6p_DTbvZ;Ek</p>
                 </div>
                 <button
                   type="button"
