@@ -6,7 +6,7 @@ interface Course {
   id: number;
   title: string;
   description: string;
-  thumbnails: string;
+  thumbnails: any[];
   lessons: any[];
   resources: any[];
 }
