@@ -14,6 +14,7 @@ interface Course {
 const LandingPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  const [imageLoaded, setImageLoaded] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     // Fetch courses from the backend
@@ -64,6 +65,14 @@ const LandingPage: React.FC = () => {
     }));
   };
 
+  // Handle image load
+  const handleImageLoad = (courseId: number) => {
+    setImageLoaded(prev => ({
+      ...prev,
+      [courseId]: true
+    }));
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* Header Section */}
@@ -83,21 +92,40 @@ const LandingPage: React.FC = () => {
           {courses.map((course) => (
             <div
               key={course.id}
-              className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300 flex flex-col h-full"
+              className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300 flex flex-col h-full transform transition duration-300 hover:shadow-xl hover:-translate-y-1"
             >
-              {/* Thumbnail image */}
+              {/* Thumbnail image with loading state */}
               <div className="h-48 bg-gray-100 overflow-hidden relative">
+                {/* Skeleton loader - shown while image is loading */}
+                {course.thumbnail && !imageLoaded[course.id] && !imageErrors[course.id] && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse">
+                    <div className="flex items-center justify-center h-full">
+                      <svg className="w-10 h-10 text-gray-300 animate-spin" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Actual image */}
                 {course.thumbnail && !imageErrors[course.id] ? (
                   <img
                     src={getThumbnailUrl(course.thumbnail)}
                     alt={`${course.title} thumbnail`}
-                    className="w-full h-full object-cover absolute inset-0"
+                    className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-300 ${imageLoaded[course.id] ? 'opacity-100' : 'opacity-0'}`}
                     onError={() => handleImageError(course.id)}
+                    onLoad={() => handleImageLoad(course.id)}
                     loading="lazy"
                   />
                 ) : (
                   <div className="bg-gray-200 w-full h-full flex items-center justify-center">
-                    <span className="text-gray-500">No image available</span>
+                    <span className="text-gray-500 flex items-center">
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                      </svg>
+                      No image available
+                    </span>
                   </div>
                 )}
               </div>
@@ -115,7 +143,7 @@ const LandingPage: React.FC = () => {
               <div className="p-4 pt-0">
                 <Link
                   to={`/courses/${course.id}/lessons`}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block text-center"
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block text-center transition duration-300"
                 >
                   View Course
                 </Link>
