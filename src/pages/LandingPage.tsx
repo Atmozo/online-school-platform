@@ -13,6 +13,7 @@ interface Course {
 
 const LandingPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [imageErrors, setImageErrors] = useState<{[key: number]: boolean}>({});
   
   useEffect(() => {
     // Fetch courses from the backend
@@ -27,6 +28,15 @@ const LandingPage: React.FC = () => {
     fetchCourses();
   }, []);
   
+  // Handle image loading errors
+  const handleImageError = (courseId: number) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [courseId]: true
+    }));
+    console.error(`Failed to load thumbnail for course ID: ${courseId}`);
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* Header Section */}
@@ -50,11 +60,12 @@ const LandingPage: React.FC = () => {
             >
               {/* Thumbnail image */}
               <div className="h-48 overflow-hidden">
-                {course.thumbnail ? (
+                {course.thumbnail && !imageErrors[course.id] ? (
                   <img 
                     src={course.thumbnail} 
                     alt={`${course.title} thumbnail`} 
                     className="w-full h-full object-cover"
+                    onError={() => handleImageError(course.id)}
                   />
                 ) : (
                   <div className="bg-gray-200 w-full h-full flex items-center justify-center">
