@@ -82,33 +82,11 @@ router.get('/lessons/:lessonId/resources', async (req, res) => {
 
 
 // Get all courses with lessons and resources
+// Get all courses with lessons, resources, and thumbnails
 router.get('/', async (req, res) => {
   try {
     const [courses] = await db.query('SELECT * FROM courses');
-
     // Fetch lessons and resources for each course
-    const detailedCourses = await Promise.all(
-      courses.map(async (course) => {
-        const [lessons] = await db.query('SELECT * FROM lessons WHERE id = ?', [course.id]);
-        const [resources] = await db.query('SELECT * FROM resources WHERE id = ?', [course.id]);
-        return { ...course, lessons, resources };
-      })
-    );
-
-    res.status(200).json(detailedCourses);
-  } catch (error) {
-    console.error('Error fetching courses:', error);
-    res.status(500).json({ error: 'Error fetching courses' });
-  }
-});
-
-// Get courses by user with lessons and resources
-router.get('/user/:userId', async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    const [courses] = await db.query('SELECT * FROM courses WHERE created_by = ?', [userId]);
-
     const detailedCourses = await Promise.all(
       courses.map(async (course) => {
         const [lessons] = await db.query('SELECT * FROM lessons WHERE course_id = ?', [course.id]);
@@ -116,7 +94,25 @@ router.get('/user/:userId', async (req, res) => {
         return { ...course, lessons, resources };
       })
     );
+    res.status(200).json(detailedCourses);
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    res.status(500).json({ error: 'Error fetching courses' });
+  }
+});
 
+// Get courses by user with lessons, resources, and thumbnails
+router.get('/user/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const [courses] = await db.query('SELECT * FROM courses WHERE created_by = ?', [userId]);
+    const detailedCourses = await Promise.all(
+      courses.map(async (course) => {
+        const [lessons] = await db.query('SELECT * FROM lessons WHERE course_id = ?', [course.id]);
+        const [resources] = await db.query('SELECT * FROM resources WHERE course_id = ?', [course.id]);
+        return { ...course, lessons, resources };
+      })
+    );
     res.status(200).json(detailedCourses);
   } catch (error) {
     console.error('Error fetching user courses:', error);
@@ -124,8 +120,19 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
-// ...existing code...
-
+// Add new endpoint to update course thumbnail
+router.put('/:courseId/thumbnails', async (req, res) => {
+  const { courseId } = req.params;
+  const { thumbnails } = req.body;
+  
+  try {
+    await db.query('UPDATE courses SET thumbnails = ? WHERE id = ?', [thumbnails, courseId]);
+    res.status(200).json({ message: 'Thumbnail updated successfully' });
+  } catch (error) {
+    console.error('Error updating thumbnail:', error);
+    res.status(500).json({ error: 'Error updating thumbnail' });
+  }
+});
 // Get all lessons for a course
 router.get('/:courseId/lessons', async (req, res) => {
   

@@ -2,9 +2,18 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-const LandingPage: React.FC = () => {
-  const [courses, setCourses] = useState([]);
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  thumbnails: string;
+  lessons: any[];
+  resources: any[];
+}
 
+const LandingPage: React.FC = () => {
+  const [courses, setCourses] = useState<Course[]>([]);
+  
   useEffect(() => {
     // Fetch courses from the backend
     const fetchCourses = async () => {
@@ -17,11 +26,11 @@ const LandingPage: React.FC = () => {
     };
     fetchCourses();
   }, []);
-
+  
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* Header Section */}
-      <header className=" bg-blue-600 text-white py-4">
+      <header className="bg-blue-600 text-white py-4">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold">DEMO MVP LEARNING SITE</h1>
           <p className="mt-2 text-lg">
@@ -29,24 +38,49 @@ const LandingPage: React.FC = () => {
           </p>
         </div>
       </header>
-
+      
       {/* Courses Overview Section */}
       <section className="container mx-auto px-4 py-8">
         <h2 className="text-3xl font-bold text-center mb-8">Our Courses</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {courses.map((course: any) => (
+          {courses.map((course) => (
             <div
               key={course.id}
-              className="bg-white shadow-md rounded-lg p-4 border border-gray-300"
+              className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300 flex flex-col h-full"
             >
-              <h3 className="text-xl font-semibold mb-2">{course.title}</h3>
-              <p className="text-gray-600">{course.description}</p>
-              <Link 
-                to={`/courses/${course.id}/lessons`}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-100 inline-block"
-              >
-                View Course
-              </Link>
+              {/* Thumbnail image */}
+              <div className="h-48 overflow-hidden">
+                {course.thumbnails? (
+                  <img 
+                    src={course.thumbnails} 
+                    alt={`${course.title} thumbnail`} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="bg-gray-200 w-full h-full flex items-center justify-center">
+                    <span className="text-gray-500">No image available</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="p-4 flex-grow">
+                <h3 className="text-xl font-semibold mb-2">{course.title}</h3>
+                <p className="text-gray-600 mb-4">{course.description}</p>
+                <div className="text-sm text-gray-500 mb-2">
+                  {course.lessons && (
+                    <p>{course.lessons.length} lessons available</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="p-4 pt-0">
+                <Link 
+                  to={`/courses/${course.id}/lessons`}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block text-center"
+                >
+                  View Course
+                </Link>
+              </div>
             </div>
           ))}
         </div>
