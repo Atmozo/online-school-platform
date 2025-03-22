@@ -6,7 +6,7 @@ interface Course {
   id: number;
   title: string;
   description: string;
-  thumbnails: string;
+  thumbnail: string;
   lessons: any[];
   resources: any[];
 }
@@ -26,17 +26,6 @@ const LandingPage: React.FC = () => {
     };
     fetchCourses();
   }, []);
-  
-  // Function to get appropriate thumbnail for each course
-  const getCourseThumbnail = (course: Course) => {
-    // If course has a specific thumbnail, use it
-    if (course.thumbnails) {
-      return course.thumbnails;
-    }
-    
-    // If no thumbnail is set, return a placeholder based on course ID
-    return `https://placeholdit.imgix.net/~text?txtsize=33&txt=Course%20${course.id}&w=400&h=225`;
-  };
   
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -61,15 +50,17 @@ const LandingPage: React.FC = () => {
             >
               {/* Thumbnail image */}
               <div className="h-48 overflow-hidden">
-                <img 
-                  src={getCourseThumbnail(course)} 
-                  alt={`${course.title} thumbnail`} 
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback if image fails to load
-                    (e.target as HTMLImageElement).src = `https://via.placeholder.com/400x225?text=Course+${course.id}`;
-                  }}
-                />
+                {course.thumbnail ? (
+                  <img 
+                    src={course.thumbnail} 
+                    alt={`${course.title} thumbnail`} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="bg-gray-200 w-full h-full flex items-center justify-center">
+                    <span className="text-gray-500">No image available</span>
+                  </div>
+                )}
               </div>
               
               <div className="p-4 flex-grow">
