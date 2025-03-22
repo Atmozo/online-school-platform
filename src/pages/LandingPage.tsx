@@ -13,6 +13,7 @@ interface Course {
 
 const LandingPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     // Fetch courses from the backend
@@ -36,13 +37,21 @@ const LandingPage: React.FC = () => {
       return url;
     }
     
-    // If it's a Cloudinary asset ID without the full URL
+    // If the path contains a slash, it might be a relative path in Cloudinary
     if (url.includes("/")) {
       return `https://res.cloudinary.com/dxhwlcqmk/image/upload/${url}`;
     }
     
     // For other cases, assume it's a Cloudinary public ID
     return `https://res.cloudinary.com/dxhwlcqmk/image/upload/${url}`;
+  };
+
+  // Handle image error
+  const handleImageError = (courseId: number) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [courseId]: true
+    }));
   };
 
   return (
@@ -68,16 +77,12 @@ const LandingPage: React.FC = () => {
             >
               {/* Thumbnail image */}
               <div className="h-48 overflow-hidden">
-                {course.thumbnail ? (
+                {course.thumbnail && !imageErrors[course.id] ? (
                   <img
                     src={getThumbnailUrl(course.thumbnail)}
                     alt={`${course.title} thumbnail`}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.onerror = null;
-                      target.src = "https://via.placeholder.com/300x200?text=Image+Not+Available";
-                    }}
+                    onError={() => handleImageError(course.id)}
                   />
                 ) : (
                   <div className="bg-gray-200 w-full h-full flex items-center justify-center">
