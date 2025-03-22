@@ -89,8 +89,8 @@ router.get('/', async (req, res) => {
     // Fetch lessons and resources for each course
     const detailedCourses = await Promise.all(
       courses.map(async (course) => {
-        const [lessons] = await db.query('SELECT * FROM lessons WHERE course_id = ?', [course.id]);
-        const [resources] = await db.query('SELECT * FROM resources WHERE course_id = ?', [course.id]);
+        const [lessons] = await db.query('SELECT * FROM lessons WHERE id = ?', [course.id]);
+        const [resources] = await db.query('SELECT * FROM resources WHERE id = ?', [course.id]);
         return { ...course, lessons, resources };
       })
     );
