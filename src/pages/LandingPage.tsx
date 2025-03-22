@@ -34,16 +34,26 @@ const LandingPage: React.FC = () => {
     
     // Check if the URL is already a complete URL
     if (url.startsWith("http://") || url.startsWith("https://")) {
+      // Add Cloudinary transformation parameters for better image quality and sizing
+      if (url.includes('cloudinary.com')) {
+        // Add c_fill to maintain aspect ratio while filling the area
+        // Add w_800,h_450 for a high-quality image that will scale down nicely
+        // Add q_auto for automatic quality optimization
+        if (url.includes('/upload/')) {
+          return url.replace('/upload/', '/upload/c_fill,w_800,h_450,q_auto/');
+        }
+      }
       return url;
     }
     
     // If the path contains a slash, it might be a relative path in Cloudinary
     if (url.includes("/")) {
-      return `https://res.cloudinary.com/dxhwlcqmk/image/upload/${url}`;
+      // Apply transformations directly when constructing the URL
+      return `https://res.cloudinary.com/dxhwlcqmk/image/upload/c_fill,w_800,h_450,q_auto/${url}`;
     }
     
     // For other cases, assume it's a Cloudinary public ID
-    return `https://res.cloudinary.com/dxhwlcqmk/image/upload/${url}`;
+    return `https://res.cloudinary.com/dxhwlcqmk/image/upload/c_fill,w_800,h_450,q_auto/${url}`;
   };
 
   // Handle image error
@@ -76,13 +86,14 @@ const LandingPage: React.FC = () => {
               className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-300 flex flex-col h-full"
             >
               {/* Thumbnail image */}
-              <div className="h-48 overflow-hidden">
+              <div className="h-48 bg-gray-100 overflow-hidden relative">
                 {course.thumbnail && !imageErrors[course.id] ? (
                   <img
                     src={getThumbnailUrl(course.thumbnail)}
                     alt={`${course.title} thumbnail`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover absolute inset-0"
                     onError={() => handleImageError(course.id)}
+                    loading="lazy"
                   />
                 ) : (
                   <div className="bg-gray-200 w-full h-full flex items-center justify-center">
