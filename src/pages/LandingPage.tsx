@@ -13,8 +13,7 @@ interface Course {
 
 const LandingPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [imageErrors, setImageErrors] = useState<{[key: number]: boolean}>({});
-  
+
   useEffect(() => {
     // Fetch courses from the backend
     const fetchCourses = async () => {
@@ -27,41 +26,23 @@ const LandingPage: React.FC = () => {
     };
     fetchCourses();
   }, []);
-  
-  // Process Cloudinary URLs correctly
-  const getCorrectImageUrl = (url: string) => {
-    // If it's not a Cloudinary URL or already correctly formatted, return as is
-    if (!url || !url.includes('cloudinary')) {
+
+  // Helper function to validate and format thumbnail URLs
+  const getThumbnailUrl = (url: string) => {
+    if (!url) return "";
+    
+    // Check if the URL is already a complete URL
+    if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
     
-    // Fix common Cloudinary URL issues
-    // The URL should be like: https://res.cloudinary.com/dxhwlcqmk/image/upload/v1/[PUBLIC_ID]
-    
-    try {
-      // Extract the cloud name and public ID from the current URL
-      const urlParts = url.split('/');
-      const cloudName = urlParts.find(part => part.includes('cloudinary.com'))?.split('.')[0];
-      const publicId = urlParts[urlParts.length - 1];
-      
-      if (cloudName && publicId) {
-        // Construct the proper Cloudinary URL
-        return `https://res.cloudinary.com/${cloudName.replace('asset', '')}/image/upload/v1/${publicId}`;
-      }
-    } catch (error) {
-      console.error("Error processing Cloudinary URL:", error);
+    // If it's a Cloudinary asset ID without the full URL
+    if (url.includes("/")) {
+      return `https://res.cloudinary.com/dxhwlcqmk/image/upload/${url}`;
     }
     
-    return url;
-  };
-
-  // Handle image loading errors
-  const handleImageError = (courseId: number) => {
-    setImageErrors(prev => ({
-      ...prev,
-      [courseId]: true
-    }));
-    console.error(`Failed to load thumbnail for course ID: ${courseId}`);
+    // For other cases, assume it's a Cloudinary public ID
+    return `https://res.cloudinary.com/dxhwlcqmk/image/upload/${url}`;
   };
 
   return (
@@ -75,7 +56,7 @@ const LandingPage: React.FC = () => {
           </p>
         </div>
       </header>
-      
+
       {/* Courses Overview Section */}
       <section className="container mx-auto px-4 py-8">
         <h2 className="text-3xl font-bold text-center mb-8">Our Courses</h2>
@@ -87,12 +68,16 @@ const LandingPage: React.FC = () => {
             >
               {/* Thumbnail image */}
               <div className="h-48 overflow-hidden">
-                {course.thumbnail && !imageErrors[course.id] ? (
-                  <img 
-                    src={getCorrectImageUrl(course.thumbnail)} 
-                    alt={`${course.title} thumbnail`} 
+                {course.thumbnail ? (
+                  <img
+                    src={getThumbnailUrl(course.thumbnail)}
+                    alt={`${course.title} thumbnail`}
                     className="w-full h-full object-cover"
-                    onError={() => handleImageError(course.id)}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = "https://via.placeholder.com/300x200?text=Image+Not+Available";
+                    }}
                   />
                 ) : (
                   <div className="bg-gray-200 w-full h-full flex items-center justify-center">
@@ -100,7 +85,7 @@ const LandingPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="p-4 flex-grow">
                 <h3 className="text-xl font-semibold mb-2">{course.title}</h3>
                 <p className="text-gray-600 mb-4">{course.description}</p>
@@ -110,9 +95,9 @@ const LandingPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="p-4 pt-0">
-                <Link 
+                <Link
                   to={`/courses/${course.id}/lessons`}
                   className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block text-center"
                 >
