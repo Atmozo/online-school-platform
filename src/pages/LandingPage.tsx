@@ -78,8 +78,8 @@ const LandingPage: React.FC = () => {
       {/* Header Section */}
       <header className="bg-blue-600 text-white py-4">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold">DEMO MVP LEARNING SITE</h1>
-          <p className="mt-2 text-lg">
+          <h1 className="text-4xl font-bold font-serif">DEMO MVP LEARNING SITE</h1>
+          <p className="mt-2 text-lg font-light">
             Discover courses and grow your skills!
           </p>
         </div>
@@ -87,7 +87,7 @@ const LandingPage: React.FC = () => {
 
       {/* Courses Overview Section */}
       <section className="container mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold text-center mb-8">Our Courses</h2>
+        <h2 className="text-3xl font-bold text-center mb-8 font-serif">Our Courses</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {courses.map((course) => (
             <div
@@ -131,9 +131,9 @@ const LandingPage: React.FC = () => {
               </div>
 
               <div className="p-4 flex-grow">
-                <h3 className="text-xl font-semibold mb-2">{course.title}</h3>
-                <p className="text-gray-600 mb-4">{course.description}</p>
-                <div className="text-sm text-gray-500 mb-2">
+                <h3 className="text-xl font-bold mb-2 text-blue-800 font-serif tracking-wide">{course.title}</h3>
+                <p className="text-gray-700 mb-4 font-medium leading-relaxed">{course.description}</p>
+                <div className="text-sm text-gray-500 mb-2 italic">
                   {course.lessons && (
                     <p>{course.lessons.length} lessons available</p>
                   )}
@@ -143,7 +143,7 @@ const LandingPage: React.FC = () => {
               <div className="p-4 pt-0">
                 <Link
                   to={`/courses/${course.id}/lessons`}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block text-center transition duration-300"
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block text-center transition duration-300 font-medium"
                 >
                   View Course
                 </Link>
