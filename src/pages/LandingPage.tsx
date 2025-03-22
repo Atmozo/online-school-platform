@@ -28,6 +28,33 @@ const LandingPage: React.FC = () => {
     fetchCourses();
   }, []);
   
+  // Process Cloudinary URLs correctly
+  const getCorrectImageUrl = (url: string) => {
+    // If it's not a Cloudinary URL or already correctly formatted, return as is
+    if (!url || !url.includes('cloudinary')) {
+      return url;
+    }
+    
+    // Fix common Cloudinary URL issues
+    // The URL should be like: https://res.cloudinary.com/dxhwlcqmk/image/upload/v1/[PUBLIC_ID]
+    
+    try {
+      // Extract the cloud name and public ID from the current URL
+      const urlParts = url.split('/');
+      const cloudName = urlParts.find(part => part.includes('cloudinary.com'))?.split('.')[0];
+      const publicId = urlParts[urlParts.length - 1];
+      
+      if (cloudName && publicId) {
+        // Construct the proper Cloudinary URL
+        return `https://res.cloudinary.com/${cloudName.replace('asset', '')}/image/upload/v1/${publicId}`;
+      }
+    } catch (error) {
+      console.error("Error processing Cloudinary URL:", error);
+    }
+    
+    return url;
+  };
+
   // Handle image loading errors
   const handleImageError = (courseId: number) => {
     setImageErrors(prev => ({
@@ -62,7 +89,7 @@ const LandingPage: React.FC = () => {
               <div className="h-48 overflow-hidden">
                 {course.thumbnail && !imageErrors[course.id] ? (
                   <img 
-                    src={course.thumbnail} 
+                    src={getCorrectImageUrl(course.thumbnail)} 
                     alt={`${course.title} thumbnail`} 
                     className="w-full h-full object-cover"
                     onError={() => handleImageError(course.id)}
