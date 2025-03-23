@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, Mail, Lock, User, AtSign, School, Info, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useSignIn, useSignUp } from "@clerk/clerk-react";
+import { useSignIn, useSignUp, useAuth } from "@clerk/clerk-react";
 import { useNavigate } from 'react-router-dom';
 
 // Previous interfaces remain the same
@@ -49,6 +49,15 @@ const AuthForms: React.FC = () => {
   const navigate = useNavigate();
   const { isLoaded: isSignInLoaded, signIn, setActive: setSignInActive } = useSignIn();
   const { isLoaded: isSignUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+
+  // Check if user is already signed in
+  useEffect(() => {
+    if (isAuthLoaded && isSignedIn) {
+      // User is already signed in, redirect to dashboard
+      navigate('/dashboard');
+    }
+  }, [isAuthLoaded, isSignedIn, navigate]);
 
   // Email validation
   const validateEmail = (email: string) => {
@@ -118,11 +127,17 @@ const AuthForms: React.FC = () => {
       password,
     };
 
-    if (isLogin) {
-      data[authMethod] = formData.get(authMethod) as string;
-      try {
+    try {
+      if (isLogin) {
+        data[authMethod] = formData.get(authMethod) as string;
+        
         if (!isSignInLoaded) {
           throw new Error("Sign-in is not available");
+        }
+        
+        // First check if a session already exists and sign out if needed
+        if (isSignedIn) {
+          await signIn?.destroy();
         }
         
         const result = await signIn?.create({
@@ -142,15 +157,17 @@ const AuthForms: React.FC = () => {
         } else if (result?.status === "needs_new_password") {
           setError("You need to update your password");
         }
-      } catch (err: any) {
-        setError(err?.errors?.[0]?.message || "Authentication failed");
-      }
-    } else {
-      data.name = formData.get("name") as string;
-      data.email = formData.get("email") as string;
-      try {
+      } else {
+        data.name = formData.get("name") as string;
+        data.email = formData.get("email") as string;
+        
         if (!isSignUpLoaded) {
           throw new Error("Sign-up is not available");
+        }
+        
+        // First check if a session already exists and sign out if needed
+        if (isSignedIn) {
+          await signUp?.destroy();
         }
         
         const result = await signUp?.create({
@@ -167,16 +184,28 @@ const AuthForms: React.FC = () => {
         } else if (result?.status === "needs_email_verification") {
           setError("Please check your email to verify your account");
         }
-      } catch (err: any) {
-        setError(err?.errors?.[0]?.message || "Sign up failed");
       }
+    } catch (err: any) {
+      const errorMessage = err?.errors?.[0]?.message || (isLogin ? "Authentication failed" : "Sign up failed");
+      setError(errorMessage);
+      console.error("Auth error:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
+      // Check if a session already exists and sign out if needed
+      if (isSignedIn) {
+        if (isLogin && isSignInLoaded) {
+          await signIn?.destroy();
+        } else if (!isLogin && isSignUpLoaded) {
+          await signUp?.destroy();
+        }
+      }
+      
       if (isLogin) {
         if (!isSignInLoaded) {
           throw new Error("Sign-in is not available");
@@ -200,10 +229,22 @@ const AuthForms: React.FC = () => {
       }
     } catch (err: any) {
       setError(err?.errors?.[0]?.message || "Google authentication failed");
+      console.error("Google auth error:", err);
     } finally {
       setLoading(false);
     }
   };
+
+  // Add Clerk CAPTCHA element
+  useEffect(() => {
+    // Create the clerk-captcha element if it doesn't exist
+    if (!document.getElementById('clerk-captcha')) {
+      const captchaElement = document.createElement('div');
+      captchaElement.id = 'clerk-captcha';
+      captchaElement.style.display = 'none'; // Hide it visually but keep it in DOM
+      document.body.appendChild(captchaElement);
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -224,6 +265,22 @@ const AuthForms: React.FC = () => {
       validatePassword("bc.v6p_DTbvZ;Ek");
     }
   };
+
+  // If already signed in, show loading or redirect
+  if (isAuthLoaded && isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
+              <p>You're already signed in. Redirecting to dashboard...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
@@ -513,6 +570,9 @@ const AuthForms: React.FC = () => {
           </form>
         </CardContent>
       </Card>
+      
+      {/* Hidden Clerk CAPTCHA div that will be used by Clerk */}
+      <div id="clerk-captcha" style={{ display: 'none' }}></div>
     </div>
   );
 };
