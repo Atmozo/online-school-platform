@@ -477,7 +477,7 @@ const AuthForms: React.FC = () => {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
+            <div id='clerk-captcha' />
             <button
               type="submit"
               disabled={loading || (!isLogin && !validation.password.valid)}
@@ -566,14 +566,14 @@ const AuthForms: React.FC = () => {
                   {isLogin ? "Sign up" : "Sign in"}
                 </span>
               </button>
-               <div id='clerk-captcha' />
+              
             </div>
           </form>
         </CardContent>
       </Card>
       
    
-     <div id='clerk-captcha' />
+     
     </div>
   );
 };
