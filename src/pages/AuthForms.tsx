@@ -572,7 +572,7 @@ const AuthForms: React.FC = () => {
       </Card>
       
       {/* Hidden Clerk CAPTCHA div that will be used by Clerk */}
-      <div id="clerk-captcha" style={{ display: 'none' }}></div>
+     <div id='clerk-captcha' />
     </div>
   );
 };
