@@ -169,6 +169,19 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
     return `https://drive.google.com/file/d/${fileId}/preview`;
   };
 
+  const renderVideoWrapper = (children: React.ReactNode) => (
+    <div className={`relative w-full ${className}`} ref={containerRef}>
+      {title && (
+        <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/60 to-transparent">
+          <h3 className="text-white text-lg font-medium">{title}</h3>
+        </div>
+      )}
+      <div className="relative pt-[56.25%]">
+        {children}
+      </div>
+    </div>
+  );
+
   if (platform === 'youtube' && videoId) {
     const youtubeParams = new URLSearchParams({
       autoplay: autoplay ? '1' : '0',
@@ -178,92 +191,61 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
       rel: '0'
     });
 
-    return (
-      <div className={`relative w-full ${className}`} ref={containerRef}>
-        <div className="relative pt-[56.25%]">
-          <iframe
-            className="absolute inset-0 w-full h-full rounded-lg"
-            src={`https://www.youtube.com/embed/${videoId}?${youtubeParams.toString()}`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            allowFullScreen
-            title={title || "YouTube video"}
-          />
-        </div>
-        {title && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-            <h3 className="text-white text-lg font-medium">{title}</h3>
-          </div>
-        )}
-      </div>
+    return renderVideoWrapper(
+      <iframe
+        className="absolute inset-0 w-full h-full rounded-lg"
+        src={`https://www.youtube.com/embed/${videoId}?${youtubeParams.toString()}`}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowFullScreen
+        title={title || "YouTube video"}
+      />
     );
   }
 
   if (platform === 'alison' && videoId) {
-    return (
-      <div className={`relative w-full ${className}`} ref={containerRef}>
-        <div className="relative pt-[56.25%]">
-          <iframe
-            className="absolute inset-0 w-full h-full rounded-lg"
-            src={getAlisonEmbedUrl(videoId)}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            allowFullScreen
-            title={title || "Alison course"}
-          />
-        </div>
-        {title && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-            <h3 className="text-white text-lg font-medium">{title}</h3>
-          </div>
-        )}
-      </div>
+    return renderVideoWrapper(
+      <iframe
+        className="absolute inset-0 w-full h-full rounded-lg"
+        src={getAlisonEmbedUrl(videoId)}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowFullScreen
+        title={title || "Alison course"}
+      />
     );
   }
 
   if (platform === 'google' && videoId) {
-    return (
-      <div className={`relative w-full ${className}`} ref={containerRef}>
-        <div className="relative pt-[56.25%]">
-          <iframe
-            className="absolute inset-0 w-full h-full rounded-lg"
-            src={getGoogleVideoEmbedUrl(videoId)}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            allowFullScreen
-            title={title || "Google video"}
-          />
-        </div>
-        {title && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-            <h3 className="text-white text-lg font-medium">{title}</h3>
-          </div>
-        )}
-      </div>
+    return renderVideoWrapper(
+      <iframe
+        className="absolute inset-0 w-full h-full rounded-lg"
+        src={getGoogleVideoEmbedUrl(videoId)}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowFullScreen
+        title={title || "Google video"}
+      />
     );
   }
 
   if (platform === 'googleDrive' && videoId) {
-    return (
-      <div className={`relative w-full ${className}`} ref={containerRef}>
-        <div className="relative pt-[56.25%]">
-          <iframe
-            className="absolute inset-0 w-full h-full rounded-lg"
-            src={getGoogleDriveEmbedUrl(videoId)}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            allowFullScreen
-            title={title || "Google Drive video"}
-          />
-        </div>
-        {title && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-            <h3 className="text-white text-lg font-medium">{title}</h3>
-          </div>
-        )}
-      </div>
+    return renderVideoWrapper(
+      <iframe
+        className="absolute inset-0 w-full h-full rounded-lg"
+        src={getGoogleDriveEmbedUrl(videoId)}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowFullScreen
+        title={title || "Google Drive video"}
+      />
     );
   }
 
-  // Direct video file (unchanged)
+  // Direct video file
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`} ref={containerRef}>
+      {title && (
+        <div className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/60 to-transparent">
+          <h3 className="text-white text-lg font-medium">{title}</h3>
+        </div>
+      )}
       <video
         ref={videoRef}
         className="w-full h-full object-cover rounded-lg"
@@ -305,12 +287,6 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
               className="w-24 h-1 bg-white/50 rounded-full appearance-none cursor-pointer"
             />
           </div>
-
-          {title && (
-            <div className="flex-grow">
-              <h3 className="text-white text-lg font-medium truncate">{title}</h3>
-            </div>
-          )}
 
           <div className="relative">
             <button
