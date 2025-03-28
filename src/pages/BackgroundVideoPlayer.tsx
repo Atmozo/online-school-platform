@@ -18,6 +18,7 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
 }) => {
   const [platform, setPlatform] = useState<'youtube' | 'alison' | 'google' | 'googleDrive' | 'direct' | null>(null);
   const [videoId, setVideoId] = useState<string | null>(null);
+  const [displayTitle, setDisplayTitle] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(autoplay);
   const [isMuted, setIsMuted] = useState(autoplay);
   const [volume, setVolume] = useState(1);
@@ -59,6 +60,7 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
         if (match) {
           setPlatform('youtube');
           setVideoId(match[1]);
+          setDisplayTitle(title || `YouTube Video: ${match[1]}`);
           return;
         }
       }
@@ -69,6 +71,7 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
         if (match) {
           setPlatform('alison');
           setVideoId(match[1]);
+          setDisplayTitle(title || `Alison Course: ${match[1]}`);
           return;
         }
       }
@@ -79,6 +82,7 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
         if (match) {
           setPlatform('google');
           setVideoId(match[1]);
+          setDisplayTitle(title || `Google Video: ${match[1]}`);
           return;
         }
       }
@@ -89,6 +93,7 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
         if (match) {
           setPlatform('googleDrive');
           setVideoId(match[1]);
+          setDisplayTitle(title || `Google Drive Video: ${match[1]}`);
           return;
         }
       }
@@ -98,15 +103,17 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
       if (videoExtensions.test(url)) {
         setPlatform('direct');
         setVideoId(null);
+        setDisplayTitle(title || 'Direct Video');
       } else {
         // For any other URL, try to load it as a direct video first
         setPlatform('direct');
         setVideoId(null);
+        setDisplayTitle(title || 'Unknown Video');
       }
     };
     
     detectPlatformAndId(url);
-  }, [url]);
+  }, [url, title]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -180,6 +187,9 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
 
     return (
       <div className={`relative w-full ${className}`} ref={containerRef}>
+        <div className="absolute top-0 left-0 right-0 p-4 z-10">
+          <h3 className="text-white text-lg font-medium">{displayTitle}</h3>
+        </div>
         <div className="relative pt-[56.25%]">
           <iframe
             className="absolute inset-0 w-full h-full rounded-lg"
@@ -189,11 +199,6 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
             title={title || "YouTube video"}
           />
         </div>
-        {title && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-            <h3 className="text-white text-lg font-medium">{title}</h3>
-          </div>
-        )}
       </div>
     );
   }
@@ -201,6 +206,9 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
   if (platform === 'alison' && videoId) {
     return (
       <div className={`relative w-full ${className}`} ref={containerRef}>
+        <div className="absolute top-0 left-0 right-0 p-4 z-10">
+          <h3 className="text-white text-lg font-medium">{displayTitle}</h3>
+        </div>
         <div className="relative pt-[56.25%]">
           <iframe
             className="absolute inset-0 w-full h-full rounded-lg"
@@ -210,11 +218,6 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
             title={title || "Alison course"}
           />
         </div>
-        {title && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-            <h3 className="text-white text-lg font-medium">{title}</h3>
-          </div>
-        )}
       </div>
     );
   }
@@ -222,6 +225,9 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
   if (platform === 'google' && videoId) {
     return (
       <div className={`relative w-full ${className}`} ref={containerRef}>
+        <div className="absolute top-0 left-0 right-0 p-4 z-10">
+          <h3 className="text-white text-lg font-medium">{displayTitle}</h3>
+        </div>
         <div className="relative pt-[56.25%]">
           <iframe
             className="absolute inset-0 w-full h-full rounded-lg"
@@ -231,11 +237,6 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
             title={title || "Google video"}
           />
         </div>
-        {title && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-            <h3 className="text-white text-lg font-medium">{title}</h3>
-          </div>
-        )}
       </div>
     );
   }
@@ -243,6 +244,9 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
   if (platform === 'googleDrive' && videoId) {
     return (
       <div className={`relative w-full ${className}`} ref={containerRef}>
+        <div className="absolute top-0 left-0 right-0 p-4 z-10">
+          <h3 className="text-white text-lg font-medium">{displayTitle}</h3>
+        </div>
         <div className="relative pt-[56.25%]">
           <iframe
             className="absolute inset-0 w-full h-full rounded-lg"
@@ -252,18 +256,16 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
             title={title || "Google Drive video"}
           />
         </div>
-        {title && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-            <h3 className="text-white text-lg font-medium">{title}</h3>
-          </div>
-        )}
       </div>
     );
   }
 
-  // Direct video file (unchanged)
+  // Direct video file 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`} ref={containerRef}>
+      <div className="absolute top-0 left-0 right-0 p-4 z-10">
+        <h3 className="text-white text-lg font-medium">{displayTitle}</h3>
+      </div>
       <video
         ref={videoRef}
         className="w-full h-full object-cover rounded-lg"
@@ -305,12 +307,6 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
               className="w-24 h-1 bg-white/50 rounded-full appearance-none cursor-pointer"
             />
           </div>
-
-          {title && (
-            <div className="flex-grow">
-              <h3 className="text-white text-lg font-medium truncate">{title}</h3>
-            </div>
-          )}
 
           <div className="relative">
             <button
