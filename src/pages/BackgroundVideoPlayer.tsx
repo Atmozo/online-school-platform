@@ -224,7 +224,7 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
 
   if (platform === 'google' && videoId) {
     return (
-      <div className={`relative w-full ${className}`} ref={containerRef}>
+      <div className={`relative w-full ${videoId}`} ref={containerRef}>
         <div className="absolute top-0 left-0 right-0 p-4 z-10">
           <h3 className="text-white text-lg font-medium">{displayTitle}</h3>
         </div>
@@ -243,7 +243,7 @@ const BackgroundVideoPlayer: React.FC<VideoPlayerProps> = ({
 
   if (platform === 'googleDrive' && videoId) {
     return (
-      <div className={`relative w-full ${className}`} ref={containerRef}>
+      <div className={`relative w-full ${videoId}`} ref={containerRef}>
         <div className="absolute top-0 left-0 right-0 p-4 z-10">
           <h3 className="text-white text-lg font-medium">{displayTitle}</h3>
         </div>
