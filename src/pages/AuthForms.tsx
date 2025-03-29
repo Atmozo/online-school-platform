@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSignIn, useSignUp, useAuth } from "@clerk/clerk-react";
 import { useNavigate } from 'react-router-dom';
 
-// Previous interfaces remain the same
+//  interfaces remain the same
 interface FormData {
   email?: string;
   username?: string;
@@ -27,6 +27,37 @@ interface ValidationState {
     hasSpecialChar: boolean;
   };
 }
+
+// Background Animation Component
+const BackgroundAnimation = () => {
+  return (
+    <div className="fixed inset-0 z-0 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
+      {/* Animated circles */}
+      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+      <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      <div className="absolute bottom-1/3 right-1/3 w-56 h-56 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-3000"></div>
+      
+      {/* Floating particles */}
+      <div className="particle-container">
+        {[...Array(20)].map((_, index) => (
+          <div 
+            key={index} 
+            className="absolute rounded-full bg-white opacity-30"
+            style={{
+              width: `${Math.random() * 8 + 4}px`,
+              height: `${Math.random() * 8 + 4}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float ${Math.random() * 10 + 15}s linear infinite`,
+              animationDelay: `${Math.random() * 5}s`
+            }}
+          ></div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const AuthForms: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -58,6 +89,65 @@ const AuthForms: React.FC = () => {
       navigate('/dashboard');
     }
   }, [isAuthLoaded, isSignedIn, navigate]);
+
+  // Add animation styles to head
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      @keyframes blob {
+        0% {
+          transform: translate(0px, 0px) scale(1);
+        }
+        33% {
+          transform: translate(30px, -50px) scale(1.1);
+        }
+        66% {
+          transform: translate(-20px, 20px) scale(0.9);
+        }
+        100% {
+          transform: translate(0px, 0px) scale(1);
+        }
+      }
+      
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.5;
+        }
+        90% {
+          opacity: 0.5;
+        }
+        100% {
+          transform: translateY(-100vh);
+          opacity: 0;
+        }
+      }
+      
+      .animate-blob {
+        animation: blob 7s infinite ease-in-out;
+      }
+      
+      .animation-delay-2000 {
+        animation-delay: 2s;
+      }
+      
+      .animation-delay-3000 {
+        animation-delay: 3s;
+      }
+      
+      .animation-delay-4000 {
+        animation-delay: 4s;
+      }
+    `;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   // Email validation
   const validateEmail = (email: string) => {
@@ -269,8 +359,9 @@ const AuthForms: React.FC = () => {
   // If already signed in, show loading or redirect
   if (isAuthLoaded && isSignedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center p-4 relative">
+        <BackgroundAnimation />
+        <Card className="w-full max-w-md relative z-10">
           <CardContent className="p-6">
             <div className="flex flex-col items-center justify-center space-y-4">
               <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
@@ -283,8 +374,12 @@ const AuthForms: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
-      <Card className="w-full max-w-md transform transition-all duration-500 hover:shadow-xl">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      {/* Background Animation */}
+      <BackgroundAnimation />
+      
+      {/* Auth Form Card */}
+      <Card className="w-full max-w-md transform transition-all duration-500 hover:shadow-xl backdrop-blur-sm bg-white/90 relative z-10">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
             <div className="bg-blue-100 p-4 rounded-full transform transition-transform duration-500 hover:rotate-12">
@@ -566,14 +661,10 @@ const AuthForms: React.FC = () => {
                   {isLogin ? "Sign up" : "Sign in"}
                 </span>
               </button>
-              
             </div>
           </form>
         </CardContent>
       </Card>
-      
-   
-     
     </div>
   );
 };
