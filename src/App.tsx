@@ -14,19 +14,32 @@ import TaskManagementSystem from './pages/TaskManagementSystem';
 import ProjectsDashboard from './pages/ProjectsDashboard';
 import CookieConsent from './components/CookieConsent';
 
+const ProfessionalLoader = () => {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+      <div className="relative">
+        {/* Outer circle */}
+        <div className="w-16 h-16 rounded-full border-4 border-gray-200"></div>
+        {/* Inner spinning circle */}
+        <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent border-t-blue-600 border-l-blue-600 animate-spin"></div>
+      </div>
+      <p className="mt-4 text-gray-600 font-medium">Loading...</p>
+    </div>
+  );
+};
 // Protect routes by checking authentication with Clerk
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoaded, isSignedIn, user } = useUser();
+
+  
   
   // Show loading state while Clerk is initializing
   if (!isLoaded) {
-      return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+      return <ProfessionalLoader />;
   }
   
+  return children;
+};
   // Redirect if not authenticated
   if (!isSignedIn) {
     return <Navigate to="/auth" replace />;
