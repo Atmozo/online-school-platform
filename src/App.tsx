@@ -18,17 +18,25 @@ import CookieConsent from './components/CookieConsent';
 // Protect routes by checking authentication with Clerk
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoaded, isSignedIn, user } = useUser();
-
-  
-  
-  // Show loading state while Clerk is initializing
-  if (!isLoaded) {
+if (!isLoaded) {
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
-      <div className="relative">
-        <div className="w-12 h-12 rounded-full border-4 border-gray-200"></div>
-        <div className="absolute top-0 left-0 w-12 h-12 rounded-full border-4 border-transparent border-t-blue-600 border-l-blue-600 animate-spin"></div>
-        <p className="absolute mt-14 text-gray-600 font-medium">Loading...</p>
+    <div className="flex items-center justify-center h-screen bg-gradient-to-r from-gray-50 to-gray-100">
+      <div className="relative flex flex-col items-center">
+        {/* Outer container with shadow */}
+        <div className="p-4 rounded-xl bg-white shadow-lg">
+          {/* Spinner container */}
+          <div className="relative">
+            {/* Base circle */}
+            <div className="w-16 h-16 rounded-full border-4 border-gray-100"></div>
+            {/* Multiple spinning layers for depth */}
+            <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+            <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent border-l-indigo-500 animate-spin animate-delay-150"></div>
+          </div>
+        </div>
+        {/* Loading text with subtle animation */}
+        <div className="mt-4 text-gray-700 font-medium animate-pulse">
+          Loading<span className="animate-pulse">.</span><span className="animate-pulse delay-150">.</span><span className="animate-pulse delay-300">.</span>
+        </div>
       </div>
     </div>
   );
