@@ -23,11 +23,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   // Show loading state while Clerk is initializing
   if (!isLoaded) {
-     <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+  return (
+    <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="relative">
+        <div className="w-12 h-12 rounded-full border-4 border-gray-200"></div>
+        <div className="absolute top-0 left-0 w-12 h-12 rounded-full border-4 border-transparent border-t-blue-600 border-l-blue-600 animate-spin"></div>
+        <p className="absolute mt-14 text-gray-600 font-medium">Loading...</p>
       </div>
-    );
-  }
+    </div>
+  );
+}
   // Redirect if not authenticated
   if (!isSignedIn) {
     return <Navigate to="/auth" replace />;
